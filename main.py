@@ -33,19 +33,40 @@ PDF_FILE = os.path.join(OUTPUT_DIR, "Interview-Questions.pdf")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 
-SYSTEM_PROMPT = """I am preparing for an interview and the role is AI/ML Engineer with 4-5 years of experience. I will ask questions that may contain spelling mistakes or grammatical errors.
-First, correct the question if needed, then answer it as follows:
-- Start with 3-4 clear and concise sentences describing the concept in depth.
-- Then provide between 5 and 10 bullet points (as many as needed) covering key details, facts, use cases, and important distinctions.
-- After ALL bullet points, add a section starting with "Explanation:" that gives a practical example or scenario to reinforce the concept.
+SYSTEM_PROMPT = """You are a technical interview coach for a mixed role: Senior Software Engineer + AI/ML and GenAI Engineer.
 
-You MUST respond only with a valid JSON object in exactly this format (include 5-10 bullet points as appropriate):
+For each user question:
+1) Correct grammar/spelling and return it in "corrected_question".
+2) Return "answer" in this exact structure and order:
+
+<2-3 concise sentences>
+
+Key Points:
+<3-6 short numbered points only, using 1), 2), 3)...>
+
+Trade-offs (if relevant):
+<short trade-offs or N/A>
+
+Explanation:
+<one practical real-world scenario, max 3 lines>
+
+Rules:
+- Keep response concise and interview-ready.
+- First infer the most suitable role context for the question: "Senior Software Engineer", "AI/ML and GenAI Engineer", or "Hybrid".
+- Prioritize the answer depth and examples based on that inferred role context.
+- Do not print "Overview:" or "Role Context:" labels in the final answer.
+- For coding/DSA questions, include time and space complexity when applicable.
+- For system design questions, include at least one scalability or reliability trade-off.
+- For AI/ML or GenAI questions, mention key metrics, data considerations, evaluation approach, and deployment/MLOps implications when relevant.
+- Do not add extra sections.
+
+You MUST respond only with valid JSON in exactly this format:
 {
-  "corrected_question": "<grammatically correct version of the user's question>",
-  "answer": "<3-4 line description>\\n\\n• <point 1>\\n• <point 2>\\n• <point 3>\\n• <point 4>\\n• <point 5>\\n• <point 6>\\n• <point 7>\\n• <point 8>\\n\\nExplanation:\\n<practical example or scenario>"
+  "corrected_question": "<corrected question>",
+  "answer": "<2-3 concise sentences>\\n\\nKey Points:\\n1) <point 1>\\n2) <point 2>\\n3) <point 3>\\n\\nTrade-offs (if relevant):\\n<short trade-offs or N/A>\\n\\nExplanation:\\n<practical scenario>"
 }
 
-No extra text, no markdown, no code fences — just the raw JSON object."""
+No markdown, no code fences, no extra text."""
 
 
 MAX_RETRIES = 5
@@ -75,6 +96,9 @@ def ask(question: str) -> tuple[str, str, int, int]:
             answer = data.get("answer", "")
             if not answer:
                 raise ValueError("Empty answer in response")
+            answer = _clean_answer_for_output(answer)
+            if not answer:
+                raise ValueError("Empty answer after formatting")
             usage = response.usage
             prompt_tokens = usage.prompt_tokens if usage and usage.prompt_tokens is not None else 0
             output_tokens = usage.completion_tokens if usage and usage.completion_tokens is not None else 0
@@ -136,6 +160,18 @@ def get_next_question_number() -> int:
     return row[0] + 1
 
 
+def _clean_answer_for_output(answer: str) -> str:
+    cleaned_lines: list[str] = []
+    for line in answer.splitlines():
+        stripped = line.strip().lower()
+        if stripped.startswith("overview:"):
+            continue
+        if stripped.startswith("role context:"):
+            continue
+        cleaned_lines.append(line)
+    return "\n".join(cleaned_lines).strip()
+
+
 def _to_latin1(text: str) -> str:
     """Replace common non-Latin-1 characters so core Times font renders them."""
     table = str.maketrans({
@@ -186,6 +222,8 @@ def generate_pdf() -> None:
     pdf.set_auto_page_break(auto=True, margin=MARGIN + FOOTER_H)
 
     for q_id, question, answer, prompt_tokens, output_tokens in rows:
+        answer = _clean_answer_for_output(answer)
+
         # Each question starts on its own page
         pdf.add_page()
 
