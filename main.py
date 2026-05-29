@@ -1,6 +1,7 @@
 import json
 import os
 import sqlite3
+import shutil
 import sys
 import time
 from dotenv import load_dotenv
@@ -25,7 +26,8 @@ client = AzureOpenAI(
 )
 
 DEPLOYMENT = _get_env("CHAT_MODEL_NAME")
-OUTPUT_DIR = "input"
+OUTPUT_DIR = "output"
+LEGACY_DIR = "input"
 DB_FILE  = os.path.join(OUTPUT_DIR, "interview.db")
 PDF_FILE = os.path.join(OUTPUT_DIR, "Interview-Questions.pdf")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -86,6 +88,19 @@ def ask(question: str) -> tuple[str, str, int, int]:
 
     print(f"\nAll {MAX_RETRIES} attempts failed: {last_error}")
     sys.exit(1)
+
+
+def migrate_legacy_files() -> None:
+    legacy_db = os.path.join(LEGACY_DIR, "interview.db")
+    legacy_pdf = os.path.join(LEGACY_DIR, "Interview-Questions.pdf")
+
+    if not os.path.exists(DB_FILE) and os.path.exists(legacy_db):
+        shutil.copy2(legacy_db, DB_FILE)
+        print(f"Migrated database to '{DB_FILE}'")
+
+    if not os.path.exists(PDF_FILE) and os.path.exists(legacy_pdf):
+        shutil.copy2(legacy_pdf, PDF_FILE)
+        print(f"Copied existing PDF to '{PDF_FILE}'")
 
 
 def init_db() -> None:
@@ -221,6 +236,7 @@ def show_menu() -> str:
 
 
 def main():
+    migrate_legacy_files()
     init_db()
     while True:
         choice = show_menu()

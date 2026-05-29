@@ -11,6 +11,3 @@ wheels/
 
 # Environment File
 .env
-
-# Runtime artifacts
-input/

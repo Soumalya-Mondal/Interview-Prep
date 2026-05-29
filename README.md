@@ -28,7 +28,7 @@ A production-style command-line tool for AI/ML interview preparation. It accepts
 |-- main.py            # CLI app logic, Azure call, DB, PDF export
 |-- pyproject.toml     # dependencies and Python version
 |-- uv.lock            # locked dependency graph (uv)
-`-- input/             # generated at runtime
+`-- output/            # generated at runtime
     |-- interview.db
     `-- Interview-Questions.pdf
 ```
@@ -103,6 +103,8 @@ On launch, you see:
 - `b) Generate PDF`
 - `c) Exit`
 
+On first run after upgrading, if legacy files exist under `input/`, the app copies them to `output/` automatically.
+
 ### Ask mode (`a`)
 
 - Enter interview questions continuously.
@@ -113,12 +115,12 @@ On launch, you see:
 
 ### PDF mode (`b`)
 
-- Exports all saved questions from SQLite to `input/Interview-Questions.pdf`.
+- Exports all saved questions from SQLite to `output/Interview-Questions.pdf`.
 - If no data exists, prints `No content to export.`.
 
 ## Data model
 
-The app stores content in `input/interview.db`, table `questions`:
+The app stores content in `output/interview.db`, table `questions`:
 
 - `id` (auto-increment primary key)
 - `question` (corrected question text)
