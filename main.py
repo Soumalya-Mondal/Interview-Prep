@@ -9,13 +9,22 @@ from openai import AzureOpenAI
 
 load_dotenv()
 
+
+def _get_env(*names: str) -> str:
+    for name in names:
+        value = os.getenv(name)
+        if value:
+            return value
+    raise KeyError(f"Missing environment variable. Tried: {', '.join(names)}")
+
+
 client = AzureOpenAI(
-    azure_endpoint=os.environ["OPENAI_API_ENDPOINT"],
-    api_key=os.environ["OPENAI_API_KEY"],
-    api_version=os.environ["OPENAI_API_VERSION"],
+    azure_endpoint=_get_env("API_ENDPOINT"),
+    api_key=_get_env("API_KEY"),
+    api_version=_get_env("API_VERSION"),
 )
 
-DEPLOYMENT = os.environ["OPENAI_DEPLOYMENT_NAME"]
+DEPLOYMENT = _get_env("CHAT_MODEL_NAME")
 OUTPUT_DIR = "input"
 DB_FILE  = os.path.join(OUTPUT_DIR, "interview.db")
 PDF_FILE = os.path.join(OUTPUT_DIR, "Interview-Questions.pdf")
@@ -52,13 +61,21 @@ def ask(question: str) -> tuple[str, str, int, int]:
                     {"role": "user", "content": question},
                 ],
             )
-            data = json.loads(response.choices[0].message.content)
+            if not response.choices:
+                raise ValueError("No choices in response")
+
+            content = response.choices[0].message.content
+            if not content:
+                raise ValueError("Empty content in response")
+
+            data = json.loads(content)
             corrected = data.get("corrected_question", question)
             answer = data.get("answer", "")
             if not answer:
                 raise ValueError("Empty answer in response")
-            prompt_tokens = response.usage.prompt_tokens
-            output_tokens = response.usage.completion_tokens
+            usage = response.usage
+            prompt_tokens = usage.prompt_tokens if usage and usage.prompt_tokens is not None else 0
+            output_tokens = usage.completion_tokens if usage and usage.completion_tokens is not None else 0
             return corrected, answer, prompt_tokens, output_tokens
         except Exception as exc:
             last_error = exc
