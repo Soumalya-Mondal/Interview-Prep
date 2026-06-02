@@ -50,7 +50,7 @@ Include:
 - Step 2
 - Step 3
 
-# Python / Implementation Approach
+# Python-Rust / Implementation Approach
 - High-level implementation using Python
 - Mention relevant libraries (FastAPI, Flask, PyTorch, TensorFlow, LangChain, etc.)
 - Include pseudo-code or code snippets where useful
