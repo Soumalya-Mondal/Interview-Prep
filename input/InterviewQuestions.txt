@@ -1,3 +1,200 @@
-What are Python decorators and where have you used.
+What are Python decorators and where have you used
 Explain Python generators and their benefits.
-Difference between multiprocessing and multithreading.
+Difference between multiprocessing and multithreading
+What are Python context managers?
+How does Python memory management work?
+Explain GIL and how it impacts performance.
+What are Python dataclasses?
+Difference between list, tuple, and set.
+Explain deep copy vs shallow copy.
+What is monkey patching in Python?
+How do you handle concurrency in Python automation
+Explain asyne/await in Python.
+What is the difference between threading and asyncio?
+What are Python metaclasses?
+Explain Python's MRO (Method Resolution Order).
+How do you optimize Python performance?
+Explain Python's garbage collection.
+What are Python descriptors?
+Difference between Flask and FastAPI.
+How do you structure large Python applications?
+Explain Python packaging and dependency
+What is pip vs poetry?
+How do you manage environment isolation?
+What is WSGI?
+What is ASGI?
+How does Flask handle requests internally?
+What are Python type hints?
+Explain Python logging architecture.
+What are common Python design patterns?
+How do you write testable Python code?
+Explain dependency injection in Python.
+How do you secure Python APIs?
+What is serialization in Python?
+What is pickle and why can it be dangerous?
+Explain Python's import system.
+How do you build CLI tools in Python?
+What is the difference between str and repr?
+What is duck typing?
+Explain Python's event loop.
+What is the difference between synchronous and asynchronous?
+What are Large Language Models?
+How do transformers work?
+What is self-attention?
+What Is Tokenization?
+Difference between BERT and GPT.
+What is prompt engineering?
+What are prompt injection attacks?
+What is Retrieval Augmented Generation (RAG)?
+How do embeddings work?
+What are vector databases?
+Explain cosine similarity.
+How do you build an LLM pipeline?
+What is hallucination in LLMs?
+How do you reduce hallucinations?
+Explain chain-of-thought prompting.
+What is few-shot learning?
+What is zero-shot learning?
+What is temperature in LLMs?
+What is top-p sampling?
+Difference between fine-tuning and prompt engineering.
+What is RLHF?
+How do you evaluate LLM outputs?
+What are guardrails in GenAI systems?
+What is function calling in LLM APIs?
+What is context window limitation?
+What is embedding dimensionality?
+Explain semantic search.
+How do you build enterprise LLM applications?
+What is vector indexing?
+Explain chunking strategies for documents.
+What are LLM agents?
+What is tool usage in AI agents?
+What are autonomous agents?
+Explain Lang-Chain architecture.
+What are LLM chains?
+How do you integrate LLMs with APIs?
+What are hallucination detection techniques?
+Explain evaluation metrics for LLMs.
+What is prompt caching?
+What are safety layers for enterprise AI?
+Difference between supervised and unsupervised learning.
+What is overfitting?
+What is underfitting?
+What is regularization?
+Difference between L1 and L2 regularization.
+What is gradient descent?
+What is stochastic gradient descent?
+What are evaluation metrics in ML?
+What is cross validation?
+What is feature engineering?
+What is feature scaling?
+Difference between PCA and feature selection.
+What are ensemble models?
+Explain random forests.
+Explain boosting algorithms.
+What is bias-variance trade-off?
+What is confusion matrix?
+What is ROC curve?
+What is AUC score?
+What is model drift?
+What is data leakage?
+What is hyperparameter tuning?
+What are pipelines in ML?
+What is model explainability?
+What is SHAP or LIME?
+What is NLP preprocessing?
+Explain tokenization.
+What is lemmatization?
+Difference between stemming and lemmatization.
+What is named entity recognition?
+What is POS tagging?
+How does spaCy pipeline work?
+Difference between NLTK and spaCy.
+What are word embeddings?
+Explain TF-IDF.
+What are n-grams?
+How do you remove stopwords?
+What is sentiment analysis?
+What is topic modeling?
+How do you build a custom NLP pipeline?
+Difference between SQL and NoSQL.
+When would you choose MongoDB?
+Explain indexing in MongoDB.
+What are MongoDB aggregations?
+What is sharding?
+What is replication?
+What are transactions in MongoDB?
+Explain PostgreSQL indexing.
+What is normalization?
+What is denormalization?
+What is query optimization?
+What are joins?
+Explain ACID properties.
+What is CAP theorem?
+What is eventual consistency?
+What is schema design?
+What is connection pooling?
+How do you optimize slow queries?
+What is partitioning?
+What is database migration?
+What is cloud computing?
+Difference between IaaS, PaaS, SaaS.
+What is Azure Resource Manager?
+What is AWS EC2?
+What is AWS Lambda?
+What is serverless architecture?
+What is Azure Functions?
+What is containerization?
+What is Docker?
+What is Kubernetes?
+What is CI/CD pipeline?
+What is Infrastructure as Code?
+What is Terraform?
+What is monitoring in cloud systems?
+What is logging infrastructure?
+What is autoscaling?
+What is load balancing?
+What is cloud security model?
+What is IAM?
+What is secrets management?
+What is workflow automation?
+What is infrastructure automation?
+What are idempotent operations?
+What is configuration management?
+What is Ansible?
+What is event-driven automation?
+What is CI/CD automation?
+What is incident automation?
+What is runbook automation?
+What are self-healing systems?
+What is orchestration vs automation?
+What is cron scheduling?
+What are automation pipelines?
+What is log-driven automation?
+What are triggers in automation systems?
+What are failure handling strategies?
+What is distributed job scheduling?
+What is retry logic?
+What are observability practices?
+What are alerting systems?
+How would you design an AI-driven incident analysis system?
+How would you build an LLM-powered automation platform?
+How would you design a scalable vector search system?
+How would you design a log analysis system for millions of events?
+How would you build an enterprise RAG pipeline?
+How would you scale a Flask API to millions of requests?
+How would you design a distributed automation framework?
+How would you design a workflow orchestration system?
+How would you design a recommendation system for IT incidents?
+How would you design secure AI APIs?
+How would you monitor AI systems in production?
+How would you prevent hallucinations in enterprise AI?
+How would you design a scalable document processing system?
+How would you implement AI governance in production?
+How would you design an automation engine like E.S.O.A?
+How would you design a prompt management platform?
+How would you build a real-time anomaly detection system?
+How would you design AI pipelines for incident response?
+How would you design an enterprise AI architecture?
+How would you design a GenAI platform for internal company automation?

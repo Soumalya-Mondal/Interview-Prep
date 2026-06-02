@@ -1,17 +1,29 @@
 # define main function
 if __name__ == "__main__":
-    # import python modules:s1
+    # Define Constants For API Retry Logic
+    max_retries = 5
+    base_delay = 1
+    backoff_multiplier = 2
+    max_wait = 60
+    attempt = 0
+    response = None
+
+    # Import Python Module:S1
     try:
         from pathlib import Path
         from dotenv import load_dotenv
         import os
         import sqlite3
+        import time
+        import string
+        import mistune
+        from jinja2 import Environment, FileSystemLoader
         from openai import AzureOpenAI
     except Exception as error:
         print(f'ERROR - [Main:S1] - {str(error)}')
         exit(1)
 
-    # define folder path:s2
+    # Define Folder Path:S2
     try:
         parent_folder_path = Path.cwd()
         input_folder_path = parent_folder_path / 'input'
@@ -20,20 +32,21 @@ if __name__ == "__main__":
         env_file_path = parent_folder_path / '.env'
         system_prompt_file_path = input_folder_path / 'SystemPromptForQuestion.txt'
         question_file_path = input_folder_path / 'InterviewQuestions.txt'
-        database_file_path = database_folder_path / 'interview_qa.db'
+        template_file_path = input_folder_path / 'AnswerTemplate.html'
+        database_file_path = database_folder_path / 'interviewqa.db'
     except Exception as error:
         print(f'ERROR - [Main:S2] - {str(error)}')
         exit(1)
 
-    # load environment variables:s3
+    # Load Environment Variables:S3
     try:
         if env_file_path.exists():
             load_dotenv(dotenv_path = env_file_path)
-            
+
             # validate required environment variables
             required_credential = ['API_KEY', 'API_VERSION', 'API_ENDPOINT', 'CHAT_MODEL_NAME']
-            missing_credential = [var for var in required_credential if not os.getenv(var)]
-            
+            missing_credential = [credential for credential in required_credential if not os.getenv(credential)]
+
             if missing_credential:
                 print(f'ERROR - [Main:S3] - Missing Environment Variables: {", ".join(missing_credential)}')
                 exit(1)
@@ -50,7 +63,7 @@ if __name__ == "__main__":
         print(f'ERROR - [Main:S3] - {str(error)}')
         exit(1)
 
-    # load interview questions from file:s4
+    # Load Interview Questions From File:S4
     try:
         if question_file_path.exists():
             with open(question_file_path, 'r', encoding = 'utf-8') as question_file:
@@ -63,7 +76,7 @@ if __name__ == "__main__":
         print(f'ERROR - [Main:S4] - {str(error)}')
         exit(1)
 
-    # load system prompt if questions list is not empty:s5
+    # Load System Prompt If Questions List Is Not Empty:S5
     try:
         if questions_list:
             if system_prompt_file_path.exists():
@@ -81,21 +94,17 @@ if __name__ == "__main__":
         print(f'ERROR - [Main:S5] - {str(error)}')
         exit(1)
 
-    # create database connection and cursor:s6
+    # Create Database Connection And Cursor:S6
     try:
-        # create database folder if it doesn't exist
-        database_folder_path.mkdir(parents = True, exist_ok = True)
-        
         # create global database connection and cursor
         database_connection = sqlite3.connect(str(database_file_path))
         database_cursor = database_connection.cursor()
-        
         print(f'SUCCESS - [Main:S6] - Database Connection And Cursor Created Successfully')
     except Exception as error:
         print(f'ERROR - [Main:S6] - {str(error)}')
         exit(1)
 
-    # create sqlite database and table:s7
+    # Create SQLite Database And Table:S7
     try:
         # create table if it doesn't exist using global connection
         create_table_query = """
@@ -111,14 +120,14 @@ if __name__ == "__main__":
         """
         database_cursor.execute(create_table_query)
         database_connection.commit()
-        
+
         print(f'SUCCESS - [Main:S7] - SQLite Table Created Successfully')
     except Exception as error:
         print(f'ERROR - [Main:S7] - {str(error)}')
         database_connection.close()
         exit(1)
 
-    # create and test azure openai client:s8
+    # Create And Test Azure OpenAI Client:S8
     try:
         # initialize azure openai client with loaded environment variables
         client = AzureOpenAI(
@@ -126,13 +135,13 @@ if __name__ == "__main__":
             api_version = api_version,
             azure_endpoint = api_endpoint
         )
-        
+
         # verify client object was created
         if client is None:
             print(f'ERROR - [Main:S8] - Failed To Create Azure OpenAI Client')
             database_connection.close()
             exit(1)
-        
+
         # test the client with a simple api call
         test_response = client.chat.completions.create(
             model = chat_model_name,
@@ -143,11 +152,11 @@ if __name__ == "__main__":
             temperature = 0.7,
             max_completion_tokens = 10
         )
-        
+
         # verify test response and check for success keyword
         if test_response and test_response.choices and len(test_response.choices) > 0:
             response_content = test_response.choices[0].message.content
-            
+
             # check if response contains "success"
             if response_content and ('success' in response_content.lower()):
                 print(f'SUCCESS - [Main:S8] - Azure OpenAI Client Created And Tested Successfully')
@@ -169,41 +178,52 @@ if __name__ == "__main__":
     if questions_list and question_answer_system_prompt:
         # loop through questions and process each one
         for index, question in enumerate(questions_list, start = 1):
-            # call azure openai api for answer:s9
+            # Call Azure OpenAI API For Answer:S9
+            attempt = 0
+            while attempt < max_retries:
+                try:
+                    response = client.chat.completions.create(
+                        model = chat_model_name,
+                        messages = [
+                            {"role": "system", "content": question_answer_system_prompt},
+                            {"role": "user", "content": question}
+                        ],
+                        temperature = 0.7
+                    )
+                    # extract answer and token usage
+                    answer = response.choices[0].message.content
+                    prompt_tokens = response.usage.prompt_tokens
+                    completion_tokens = response.usage.completion_tokens
+                    # success, break the retry loop
+                    break
+                except Exception as error:
+                    attempt += 1
+                    if attempt < max_retries:
+                        # calculate wait time with exponential backoff
+                        wait_time = min(base_delay * (backoff_multiplier ** (attempt - 1)), max_wait)
+                        print(f'WARNING - [Main:S9] - API Call Failed For Q{index} (Attempt {attempt}/{max_retries}): {str(error)}')
+                        print(f'INFO - [Main:S9] - Retrying In {wait_time} Seconds...')
+                        time.sleep(wait_time)
+                    else:
+                        print(f'ERROR - [Main:S9] - API Call Failed For Q{index} After {max_retries} Retries: {str(error)}')
+                        database_connection.close()
+                        exit(1)
+
+            # Insert Into Database Using Global Connection:S10
             try:
-                response = client.chat.completions.create(
-                    model = chat_model_name,
-                    messages = [
-                        {"role": "system", "content": question_answer_system_prompt},
-                        {"role": "user", "content": question}
-                    ],
-                    temperature = 0.7
-                )
-                
-                # extract answer and token usage
-                answer = response.choices[0].message.content
-                prompt_tokens = response.usage.prompt_tokens
-                completion_tokens = response.usage.completion_tokens
-            except Exception as error:
-                print(f'ERROR - [Main:S9] - {str(error)}')
-                database_connection.close()
-                exit(1)
-                
-            # insert into database using global connection:s10
-            try:
+                question_upper = question.upper().rstrip(string.punctuation) + '?'
                 database_cursor.execute(
                     "INSERT INTO interview_qa_table (question_text, answer_text, input_token, output_token, model_name) VALUES (?, ?, ?, ?, ?)",
-                    (question, answer, prompt_tokens, completion_tokens, chat_model_name)
+                    (question_upper, answer, prompt_tokens, completion_tokens, chat_model_name)
                 )
                 database_connection.commit()
-                
-                print(f'SUCCESS - [Main:S10] - Inserted "Q{index}" into database')
+                print(f'SUCCESS - [Main:S10] - Inserted "Q{index}" Into Database')
             except Exception as db_error:
                 print(f'ERROR - [Main:S10] - Database Insert Failed For Q{index}: {str(db_error)}')
                 database_connection.close()
                 exit(1)
-        
-        # close database connection after all questions processed:s11
+
+        # Close Database Connection After All Questions Processed:S11
         try:
             database_connection.close()
             print(f'SUCCESS - [Main:S11] - All Questions Processed And Database Connection Closed')
@@ -212,3 +232,54 @@ if __name__ == "__main__":
     else:
         database_connection.close()
         exit(1)
+
+    # Generate Single HTML File From Database Records With Markdown Rendering:S12
+    try:
+        database_connection = None
+
+        # validate template file exists
+        if not template_file_path.exists():
+            print(f'ERROR - [Main:S12] - Template File Not Found: {template_file_path}')
+            exit(1)
+
+        # ensure output folder exists
+        output_folder_path.mkdir(parents=True, exist_ok=True)
+
+        # fetch all records from database
+        database_connection = sqlite3.connect(str(database_file_path))
+        database_cursor = database_connection.cursor()
+        database_cursor.execute("SELECT question_text, answer_text FROM interview_qa_table")
+        records = database_cursor.fetchall()
+
+        if records:
+            print(f'INFO - [Main:S12] - Found {len(records)} Records To Export As HTML')
+
+            # create markdown parser and render each answer
+            markdown = mistune.create_markdown()
+            qa_items = []
+            for index, (question, answer) in enumerate(records, start = 1):
+                qa_items.append({
+                    'index': index,
+                    'question': question,
+                    'answer_html': markdown(answer)
+                })
+
+            # load jinja2 template from input folder and render
+            env = Environment(loader=FileSystemLoader(str(input_folder_path)))
+            template = env.get_template('AnswerTemplate.html')
+            rendered_html = template.render(qa_items=qa_items)
+
+            html_output_path = output_folder_path / 'Answer.html'
+            with open(str(html_output_path), 'w', encoding='utf-8') as html_file:
+                html_file.write(rendered_html)
+
+            database_connection.close()
+            print(f'SUCCESS - [Main:S12] - Answer.html Generated Successfully: {html_output_path}')
+        else:
+            print(f'INFO - [Main:S12] - No Records Found In Database To Export')
+            database_connection.close()
+
+    except Exception as error:
+        print(f'ERROR - [Main:S12] - {str(error)}')
+        if database_connection:
+            database_connection.close()
