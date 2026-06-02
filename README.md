@@ -1,47 +1,66 @@
-# Interview Prep CLI (Azure OpenAI)
+# Interview Prep — Azure OpenAI
 
-A production-style command-line tool for AI/ML interview preparation. It accepts free-form questions, asks Azure OpenAI for structured answers, stores each Q&A in SQLite, and exports a polished PDF revision pack.
+A Python automation tool for technical interview preparation. It reads questions from a plain-text file, calls **Azure OpenAI** to generate structured Markdown answers, persists every Q&A with token usage in **SQLite**, and exports a self-contained **interactive HTML revision page**.
 
-## What this project does
+---
 
-- Corrects grammar/spelling in each question before storing it.
-- Generates interview-ready responses in a consistent format:
-  - 3-4 sentence concept explanation
-  - 5-10 bullet points
-  - practical `Explanation:` scenario
-- Tracks token usage (`prompt_tokens`, `output_tokens`) per question.
-- Persists data locally in SQLite for repeatable exports.
-- Builds an A4 PDF with one question per page, page numbers, and clean formatting.
+## Features
 
-## Tech stack
+- Reads questions from `input/InterviewQuestions.txt` — one question per line.
+- Sends each question to Azure OpenAI using a configurable system prompt that enforces a consistent Markdown response structure (overview, architecture, diagrams, code examples).
+- Stores questions (uppercased, normalised) along with answers and per-call token counts in a local SQLite database.
+- Exponential back-off retry logic (up to 5 attempts) for transient API failures.
+- Renders all Q&A records into a single dark-themed **accordion HTML page** (`output/Answer.html`) with:
+  - Syntax-highlighted code blocks via Prism.js
+  - Input / output token counts displayed per question
+  - Smooth scroll-to-question on accordion toggle
 
-- Python `>=3.12`
-- [openai](https://pypi.org/project/openai/) (Azure OpenAI client)
-- [python-dotenv](https://pypi.org/project/python-dotenv/)
-- [fpdf2](https://pypi.org/project/fpdf2/)
-- SQLite (built into Python)
+---
 
-## Project layout
+## Tech Stack
+
+| Layer | Library / Tool |
+|---|---|
+| Language | Python `>=3.12` |
+| AI / LLM | [openai](https://pypi.org/project/openai/) — Azure OpenAI client |
+| HTML templating | [Jinja2](https://pypi.org/project/Jinja2/) `>=3.1.0` |
+| Markdown → HTML | [mistune](https://pypi.org/project/mistune/) `>=3.2.1` |
+| Environment config | [python-dotenv](https://pypi.org/project/python-dotenv/) `>=1.2.2` |
+| Database | SQLite (Python stdlib) |
+| Syntax highlighting | Prism.js 1.29.0 (CDN) |
+
+---
+
+## Project Layout
 
 ```text
 .
-|-- main.py            # CLI app logic, Azure call, DB, PDF export
-|-- pyproject.toml     # dependencies and Python version
-|-- uv.lock            # locked dependency graph (uv)
-`-- output/            # generated at runtime
-    |-- interview.db
-    `-- Interview-Questions.pdf
+├── main.py                          # Main script — API calls, DB, HTML export
+├── pyproject.toml                   # Project metadata and dependencies
+├── uv.lock                          # Locked dependency graph (uv)
+├── input/
+│   ├── InterviewQuestions.txt       # One question per line
+│   ├── SystemPromptForQuestion.txt  # System prompt sent to Azure OpenAI
+│   └── AnswerTemplate.html          # Jinja2 HTML template for output page
+├── Database/
+│   └── interviewqa.db               # SQLite database (created at runtime)
+└── output/
+    └── Answer.html                  # Generated HTML revision page
 ```
+
+---
 
 ## Prerequisites
 
-1. Azure OpenAI resource and deployed chat model.
-2. Python 3.12+.
-3. `uv` (recommended) or `pip`.
+1. **Azure OpenAI** resource with a deployed chat model.
+2. **Python 3.12+**
+3. **`uv`** (recommended) or `pip`.
+
+---
 
 ## Setup
 
-### 1) Install dependencies
+### 1. Install Dependencies
 
 Using `uv` (recommended):
 
@@ -52,36 +71,42 @@ uv sync
 Using `pip`:
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
+python -m venv .venv
+.venv\Scripts\activate        # Windows
+source .venv/bin/activate     # macOS / Linux
 pip install -e .
 ```
 
-### 2) Configure environment variables
-
-Start from the template:
-
-```bash
-cp .env.example .env
-```
+### 2. Configure Environment Variables
 
 Create a `.env` file in the project root:
 
 ```dotenv
 API_ENDPOINT=https://<your-resource-name>.openai.azure.com/
-API_KEY=<your-azure-openai-key>
+API_KEY=<your-azure-openai-api-key>
 API_VERSION=2024-12-01-preview
-CHAT_MODEL_NAME=<your-azure-deployment-name>
+CHAT_MODEL_NAME=<your-deployment-name>
 ```
 
-Variable reference:
+| Variable | Description |
+|---|---|
+| `API_ENDPOINT` | Azure OpenAI resource endpoint URL |
+| `API_KEY` | Azure OpenAI API key |
+| `API_VERSION` | Azure OpenAI REST API version |
+| `CHAT_MODEL_NAME` | Deployment name (not the base model label) |
 
-- `API_ENDPOINT`: Azure OpenAI endpoint URL.
-- `API_KEY`: Azure OpenAI API key.
-- `API_VERSION`: Azure OpenAI REST API version.
-- `CHAT_MODEL_NAME`: Azure deployment name (not the base model family label).
+### 3. Add Questions
 
-## Run the application
+Edit `input/InterviewQuestions.txt` — one question per line:
+
+```text
+What are Python decorators and where have you used them?
+Explain Python generators and their benefits.
+```
+
+---
+
+## Run
 
 With `uv`:
 
@@ -92,12 +117,57 @@ uv run python main.py
 Without `uv`:
 
 ```bash
-python3 main.py
+python main.py
 ```
 
-## CLI workflow
+---
 
-On launch, you see:
+## Execution Pipeline
+
+The script runs the following steps sequentially:
+
+| Step | Description |
+|---|---|
+| S1 | Import all Python modules |
+| S2 | Resolve folder and file paths |
+| S3 | Validate HTML template and create `output/` folder |
+| S4 | Load and validate `.env` credentials |
+| S5 | Load questions from `InterviewQuestions.txt` |
+| S6 | Load system prompt from `SystemPromptForQuestion.txt` |
+| S7 | Open SQLite database connection |
+| S8 | Create `interview_qa_table` if it does not exist |
+| S9 | Test Azure OpenAI client connectivity |
+| S10 | Call Azure OpenAI API for each question (with retry) |
+| S11 | Insert each Q&A with token counts into SQLite |
+| S12 | Fetch all records from database and close connection |
+| S13 | Render `output/Answer.html` from the Jinja2 template |
+
+---
+
+## Output
+
+`output/Answer.html` — a self-contained, dark-themed single-page web app:
+
+- Accordion layout: click a question to expand its answer.
+- Each question header shows input and output token counts.
+- Code blocks are syntax-highlighted (Prism.js autoloader).
+- No external dependencies at runtime — open directly in any browser.
+
+---
+
+## Database Schema
+
+```sql
+CREATE TABLE IF NOT EXISTS interview_qa_table (
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    question_text    TEXT      NOT NULL DEFAULT 'N/A',
+    answer_text      TEXT      NOT NULL DEFAULT 'N/A',
+    input_token      INTEGER   NOT NULL DEFAULT 0,
+    output_token     INTEGER   NOT NULL DEFAULT 0,
+    row_inserted_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    model_name       TEXT               DEFAULT 'N/A'
+);
+```
 
 - `a) Ask me a question`
 - `b) Generate PDF`

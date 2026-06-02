@@ -23,11 +23,13 @@
         .qa-answer p { margin: 8px 0; color: #ffffff; }
         .qa-answer ul, .qa-answer ol { margin: 8px 0 8px 24px; }
         .qa-answer li { margin: 4px 0; color: #ffffff; }
-        .qa-answer pre { margin: 12px 0; border-radius: 6px; overflow-x: auto; background-color: #2d2d2d !important; }
-        .qa-answer pre code { background-color: #2d2d2d !important; color: #f0f0f0 !important; }
+        .qa-answer pre { margin: 12px 0; border-radius: 6px; overflow-x: auto; background-color: #2d2d2d !important; text-shadow: none !important; }
+        .qa-answer pre code { background-color: #2d2d2d !important; color: #f0f0f0 !important; text-shadow: none !important; }
+        .qa-answer pre [class*="token"] { color: #f0f0f0 !important; background: none !important; text-shadow: none !important; }
         .qa-answer code:not([class*="language-"]) { background-color: #2d2d2d; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; color: #f0f0f0; }
         .qa-answer blockquote { border-left: 4px solid #ffffff; padding-left: 12px; color: #cccccc; margin: 10px 0; }
         .qa-answer a { color: #cccccc; }
+        .qa-question .token-info { font-size: 0.75rem; font-weight: 400; color: #888888; margin-left: auto; white-space: nowrap; flex-shrink: 0; }
         .q-number { color: #aaaaaa; font-size: 0.85rem; margin-right: 10px; flex-shrink: 0; }
     </style>
 </head>
@@ -38,6 +40,7 @@
         <div class="qa-item">
             <div class="qa-question" onclick="toggleAnswer(this)">
                 <span><span class="q-number">Q{{ item.index }}.</span>{{ item.question }}</span>
+                <span class="token-info">[Input Token: {{ item.input_token }} | Output Token: {{ item.output_token }}]</span>
                 <span class="icon">+</span>
             </div>
             <div class="qa-answer">
@@ -59,6 +62,7 @@
                 questionEl.classList.add('active');
                 Prism.highlightAllUnder(answerEl);
             }
+            questionEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     </script>
 </body>

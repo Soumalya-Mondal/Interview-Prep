@@ -38,7 +38,18 @@ if __name__ == "__main__":
         print(f'ERROR - [Main:S2] - {str(error)}')
         exit(1)
 
-    # Load Environment Variables:S3
+    # Validate Template File And Create Output Folder:S3
+    try:
+        if not template_file_path.exists():
+            print(f'ERROR - [Main:S3] - Template File Not Found: {template_file_path}')
+            exit(1)
+        output_folder_path.mkdir(parents=True, exist_ok=True)
+        print(f'SUCCESS - Template File Validated And Output Folder Ready')
+    except Exception as error:
+        print(f'ERROR - [Main:S3] - {str(error)}')
+        exit(1)
+
+    # Load Environment Variables:S4
     try:
         if env_file_path.exists():
             load_dotenv(dotenv_path = env_file_path)
@@ -48,63 +59,63 @@ if __name__ == "__main__":
             missing_credential = [credential for credential in required_credential if not os.getenv(credential)]
 
             if missing_credential:
-                print(f'ERROR - [Main:S3] - Missing Environment Variables: {", ".join(missing_credential)}')
+                print(f'ERROR - [Main:S4] - Missing Environment Variables: {", ".join(missing_credential)}')
                 exit(1)
             else:
                 api_key = os.getenv('API_KEY')
                 api_version = os.getenv('API_VERSION')
                 api_endpoint = os.getenv('API_ENDPOINT')
                 chat_model_name = os.getenv('CHAT_MODEL_NAME')
-                print(f'SUCCESS - [Main:S3] - Environment Variables Loaded Successfully')
+                print(f'SUCCESS - Environment Variables Loaded Successfully')
         else:
-            print(f'ERROR - [Main:S3] - ".env" File Not Found: {env_file_path}')
-            exit(1)
-    except Exception as error:
-        print(f'ERROR - [Main:S3] - {str(error)}')
-        exit(1)
-
-    # Load Interview Questions From File:S4
-    try:
-        if question_file_path.exists():
-            with open(question_file_path, 'r', encoding = 'utf-8') as question_file:
-                questions_list = [line.strip() for line in question_file.readlines() if line.strip()]
-        else:
-            print(f'ERROR - [Main:S4] - "InterviewQuestions.txt" File Not Found: {question_file_path}')
-            questions_list = []
+            print(f'ERROR - [Main:S4] - ".env" File Not Found: {env_file_path}')
             exit(1)
     except Exception as error:
         print(f'ERROR - [Main:S4] - {str(error)}')
         exit(1)
 
-    # Load System Prompt If Questions List Is Not Empty:S5
+    # Load Interview Questions From File:S5
+    try:
+        if question_file_path.exists():
+            with open(question_file_path, 'r', encoding = 'utf-8') as question_file:
+                questions_list = [line.strip() for line in question_file.readlines() if line.strip()]
+        else:
+            print(f'ERROR - [Main:S5] - "InterviewQuestions.txt" File Not Found: {question_file_path}')
+            questions_list = []
+            exit(1)
+    except Exception as error:
+        print(f'ERROR - [Main:S5] - {str(error)}')
+        exit(1)
+
+    # Load System Prompt If Questions List Is Not Empty:S6
     try:
         if questions_list:
             if system_prompt_file_path.exists():
                 with open(system_prompt_file_path, 'r', encoding = 'utf-8') as system_prompt_file:
                     question_answer_system_prompt = system_prompt_file.read()
             else:
-                print(f'ERROR - [Main:S5] - "SystemPromptForQuestion.txt" File Not Found: {system_prompt_file_path}')
+                print(f'ERROR - [Main:S6] - "SystemPromptForQuestion.txt" File Not Found: {system_prompt_file_path}')
                 question_answer_system_prompt = ""
                 exit(1)
         else:
-            print(f'ERROR - [Main:S5] - Questions List Is Empty')
+            print(f'ERROR - [Main:S6] - Questions List Is Empty')
             question_answer_system_prompt = ""
             exit(1)
-    except Exception as error:
-        print(f'ERROR - [Main:S5] - {str(error)}')
-        exit(1)
-
-    # Create Database Connection And Cursor:S6
-    try:
-        # create global database connection and cursor
-        database_connection = sqlite3.connect(str(database_file_path))
-        database_cursor = database_connection.cursor()
-        print(f'SUCCESS - [Main:S6] - Database Connection And Cursor Created Successfully')
     except Exception as error:
         print(f'ERROR - [Main:S6] - {str(error)}')
         exit(1)
 
-    # Create SQLite Database And Table:S7
+    # Create Database Connection And Cursor:S7
+    try:
+        # create global database connection and cursor
+        database_connection = sqlite3.connect(str(database_file_path))
+        database_cursor = database_connection.cursor()
+        print(f'SUCCESS - Database Connection And Cursor Created Successfully')
+    except Exception as error:
+        print(f'ERROR - [Main:S7] - {str(error)}')
+        exit(1)
+
+    # Create SQLite Database And Table:S8
     try:
         # create table if it doesn't exist using global connection
         create_table_query = """
@@ -121,13 +132,13 @@ if __name__ == "__main__":
         database_cursor.execute(create_table_query)
         database_connection.commit()
 
-        print(f'SUCCESS - [Main:S7] - SQLite Table Created Successfully')
+        print(f'SUCCESS - SQLite Table Created Successfully')
     except Exception as error:
-        print(f'ERROR - [Main:S7] - {str(error)}')
+        print(f'ERROR - [Main:S8] - {str(error)}')
         database_connection.close()
         exit(1)
 
-    # Create And Test Azure OpenAI Client:S8
+    # Create And Test Azure OpenAI Client:S9
     try:
         # initialize azure openai client with loaded environment variables
         client = AzureOpenAI(
@@ -138,7 +149,7 @@ if __name__ == "__main__":
 
         # verify client object was created
         if client is None:
-            print(f'ERROR - [Main:S8] - Failed To Create Azure OpenAI Client')
+            print(f'ERROR - [Main:S9] - Failed To Create Azure OpenAI Client')
             database_connection.close()
             exit(1)
 
@@ -159,18 +170,18 @@ if __name__ == "__main__":
 
             # check if response contains "success"
             if response_content and ('success' in response_content.lower()):
-                print(f'SUCCESS - [Main:S8] - Azure OpenAI Client Created And Tested Successfully')
+                print(f'SUCCESS - Azure OpenAI Client Created And Tested Successfully')
             else:
-                print(f'ERROR - [Main:S8] - API Validation Failed - Did Not Receive SUCCESS')
+                print(f'ERROR - [Main:S9] - API Validation Failed - Did Not Receive SUCCESS')
                 print(f'  Received Response: {response_content}')
                 database_connection.close()
                 exit(1)
         else:
-            print(f'ERROR - [Main:S8] - Client Test Call Failed - No Response')
+            print(f'ERROR - [Main:S9] - Client Test Call Failed - No Response')
             database_connection.close()
             exit(1)
     except Exception as error:
-        print(f'ERROR - [Main:S8] - {str(error)}')
+        print(f'ERROR - [Main:S9] - {str(error)}')
         database_connection.close()
         exit(1)
 
@@ -178,7 +189,7 @@ if __name__ == "__main__":
     if questions_list and question_answer_system_prompt:
         # loop through questions and process each one
         for index, question in enumerate(questions_list, start = 1):
-            # Call Azure OpenAI API For Answer:S9
+            # Call Azure OpenAI API For Answer:S10
             attempt = 0
             while attempt < max_retries:
                 try:
@@ -201,15 +212,15 @@ if __name__ == "__main__":
                     if attempt < max_retries:
                         # calculate wait time with exponential backoff
                         wait_time = min(base_delay * (backoff_multiplier ** (attempt - 1)), max_wait)
-                        print(f'WARNING - [Main:S9] - API Call Failed For Q{index} (Attempt {attempt}/{max_retries}): {str(error)}')
-                        print(f'INFO - [Main:S9] - Retrying In {wait_time} Seconds...')
+                        print(f'WARNING - [Main:S10] - API Call Failed For Q{index} (Attempt {attempt}/{max_retries}): {str(error)}')
+                        print(f'INFO - [Main:S10] - Retrying In {wait_time} Seconds...')
                         time.sleep(wait_time)
                     else:
-                        print(f'ERROR - [Main:S9] - API Call Failed For Q{index} After {max_retries} Retries: {str(error)}')
+                        print(f'ERROR - [Main:S10] - API Call Failed For Q{index} After {max_retries} Retries: {str(error)}')
                         database_connection.close()
                         exit(1)
 
-            # Insert Into Database Using Global Connection:S10
+            # Insert Into Database Using Global Connection:S11
             try:
                 question_upper = question.upper().rstrip(string.punctuation) + '?'
                 database_cursor.execute(
@@ -217,69 +228,55 @@ if __name__ == "__main__":
                     (question_upper, answer, prompt_tokens, completion_tokens, chat_model_name)
                 )
                 database_connection.commit()
-                print(f'SUCCESS - [Main:S10] - Inserted "Q{index}" Into Database')
+                print(f'SUCCESS - Inserted "Q{index}" Into Database')
             except Exception as db_error:
-                print(f'ERROR - [Main:S10] - Database Insert Failed For Q{index}: {str(db_error)}')
+                print(f'ERROR - [Main:S11] - Database Insert Failed For Q{index}: {str(db_error)}')
                 database_connection.close()
                 exit(1)
 
-        # Close Database Connection After All Questions Processed:S11
-        try:
-            database_connection.close()
-            print(f'SUCCESS - [Main:S11] - All Questions Processed And Database Connection Closed')
-        except Exception as error:
-            print(f'ERROR - [Main:S11] - {str(error)}')
     else:
+        exit(1)
+
+    # Fetch All Records From Database:S12
+    try:
+        database_cursor.execute("SELECT question_text, answer_text, input_token, output_token FROM interview_qa_table")
+        records = database_cursor.fetchall()
+        database_connection.close()
+        print(f'SUCCESS - Fetched {len(records)} Records And Database Connection Closed')
+    except Exception as error:
+        print(f'ERROR - [Main:S12] - {str(error)}')
         database_connection.close()
         exit(1)
 
-    # Generate Single HTML File From Database Records With Markdown Rendering:S12
+    # Generate Single HTML File From Database Records With Markdown Rendering:S13
     try:
-        database_connection = None
-
-        # validate template file exists
-        if not template_file_path.exists():
-            print(f'ERROR - [Main:S12] - Template File Not Found: {template_file_path}')
-            exit(1)
-
-        # ensure output folder exists
-        output_folder_path.mkdir(parents=True, exist_ok=True)
-
-        # fetch all records from database
-        database_connection = sqlite3.connect(str(database_file_path))
-        database_cursor = database_connection.cursor()
-        database_cursor.execute("SELECT question_text, answer_text FROM interview_qa_table")
-        records = database_cursor.fetchall()
-
         if records:
-            print(f'INFO - [Main:S12] - Found {len(records)} Records To Export As HTML')
+            print(f'SUCCESS - Found {len(records)} Records To Export As HTML')
 
             # create markdown parser and render each answer
             markdown = mistune.create_markdown()
             qa_items = []
-            for index, (question, answer) in enumerate(records, start = 1):
+            for index, (question, answer, input_token, output_token) in enumerate(records, start = 1):
                 qa_items.append({
                     'index': index,
                     'question': question,
-                    'answer_html': markdown(answer)
+                    'answer_html': markdown(answer),
+                    'input_token': input_token,
+                    'output_token': output_token
                 })
 
             # load jinja2 template from input folder and render
-            env = Environment(loader=FileSystemLoader(str(input_folder_path)))
+            env = Environment(loader = FileSystemLoader(str(input_folder_path)))
             template = env.get_template('AnswerTemplate.html')
-            rendered_html = template.render(qa_items=qa_items)
+            rendered_html = template.render(qa_items = qa_items)
 
             html_output_path = output_folder_path / 'Answer.html'
-            with open(str(html_output_path), 'w', encoding='utf-8') as html_file:
+            with open(str(html_output_path), 'w', encoding = 'utf-8') as html_file:
                 html_file.write(rendered_html)
 
-            database_connection.close()
-            print(f'SUCCESS - [Main:S12] - Answer.html Generated Successfully: {html_output_path}')
+            print(f'SUCCESS - "Answer.html" Generated Successfully')
         else:
-            print(f'INFO - [Main:S12] - No Records Found In Database To Export')
-            database_connection.close()
-
+            print(f'INFO - No Records Found In Database To Export')
     except Exception as error:
-        print(f'ERROR - [Main:S12] - {str(error)}')
-        if database_connection:
-            database_connection.close()
+        print(f'ERROR - [Main:S13] - {str(error)}')
+        exit(1)
