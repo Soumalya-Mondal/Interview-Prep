@@ -32,13 +32,14 @@ def db_table_create(database_file_path: str) -> dict[str, str]:
         create_table_query = """
         CREATE TABLE IF NOT EXISTS interview_qa_table (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            row_inserted_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
             actual_question_text TEXT NOT NULL DEFAULT 'N/A',
             final_question_text TEXT NOT NULL DEFAULT 'N/A',
             answer_text TEXT NOT NULL DEFAULT 'N/A',
             input_token INTEGER NOT NULL DEFAULT 0,
             output_token INTEGER NOT NULL DEFAULT 0,
-            row_inserted_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            model_name TEXT DEFAULT 'N/A'
+            model_name TEXT DEFAULT 'N/A',
+            status TEXT NOT NULL DEFAULT 'Not Processed' CHECK(status IN ('Not Processed', 'Processed'))
         )
         """
         # execute the create table query and commit the changes
