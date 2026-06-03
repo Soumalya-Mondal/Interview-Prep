@@ -3,18 +3,30 @@ def db_table_create(database_file_path: str) -> dict[str, str]:
     # Importing Python Module:S1
     try:
         import sqlite3
+        from pathlib import Path
     except Exception as error:
         return {'status': 'ERROR', 'step': '1', 'file_name': 'DB-Table-Create', 'message': str(error)}
 
-    # Create Database Connection And Cursor:S2
+    # Validate Database Directory:S2
+    try:
+        # validate if database directory exists, if not create it
+        database_file_path_obj = Path(database_file_path)
+        database_directory = database_file_path_obj.parent
+        
+        if not database_directory.exists():
+            database_directory.mkdir(parents = True, exist_ok = True)
+    except Exception as error:
+        return {'status': 'ERROR', 'step': '2', 'file_name': 'DB-Table-Create', 'message': str(error)}
+
+    # Create Database Connection And Cursor:S3
     try:
         # create database connection and cursor
         database_connection = sqlite3.connect(str(database_file_path))
         database_cursor = database_connection.cursor()
     except Exception as error:
-        return {'status': 'ERROR', 'step': '2', 'file_name': 'DB-Table-Create', 'message': str(error)}
+        return {'status': 'ERROR', 'step': '3', 'file_name': 'DB-Table-Create', 'message': str(error)}
 
-    # Create SQLite Database And Table:S3
+    # Create SQLite Database And Table:S4
     try:
         # create table if it doesn't exist using connection
         create_table_query = """
@@ -34,7 +46,7 @@ def db_table_create(database_file_path: str) -> dict[str, str]:
         database_connection.commit()
         # close the database connection and return success message
         database_connection.close()
-        return {'status': 'SUCCESS', 'step': '3', 'file_name': 'DB-Table-Create', 'message': 'SQLite Database And Table Created Successfully'}
+        return {'status': 'SUCCESS', 'step': '4', 'file_name': 'DB-Table-Create', 'message': 'SQLite Database And Table Created Successfully'}
     except Exception as error:
         database_connection.close()
-        return {'status': 'ERROR', 'step': '3', 'file_name': 'DB-Table-Create', 'message': str(error)}
+        return {'status': 'ERROR', 'step': '4', 'file_name': 'DB-Table-Create', 'message': str(error)}
