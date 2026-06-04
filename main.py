@@ -47,7 +47,8 @@ if __name__ == "__main__":
         output_folder_path = parent_folder_path / 'output'
         database_folder_path = parent_folder_path / 'Database'
         env_file_path = parent_folder_path / '.env'
-        system_prompt_file_path = input_folder_path / 'SystemPromptForQuestion.txt'
+        system_prompt_file_path_for_correct_question = input_folder_path / 'CorrectQuestionGenerationSystemPrompt.txt'
+        system_prompt_file_path_for_question_answer = input_folder_path / 'QuestionAnswerSystemPrompt.txt'
         question_file_path = input_folder_path / 'InterviewQuestions.txt'
         template_file_path = input_folder_path / 'AnswerTemplate.html'
         database_file_path = database_folder_path / 'interviewqa.db'
@@ -85,9 +86,10 @@ if __name__ == "__main__":
 
     # Load Questions From File And Insert Into Database Using "question_load_and_check" Function:S7
     try:
-        question_load_and_check_result = question_load_and_check(str(question_file_path), str(database_file_path))
-        if question_load_and_check_result['status'] != 'SUCCESS':
-            print(f"ERROR - {question_load_and_check_result['file_name']}:{question_load_and_check_result['step']} - Question Load And Check Failed: {question_load_and_check_result['message']}")
+        question_load_and_check_result = question_load_and_check(str(question_file_path), str(database_file_path), str(system_prompt_file_path_for_correct_question))
+        if question_load_and_check_result.get('status') != 'SUCCESS':
+            error_msg = question_load_and_check_result.get('message', 'Unknown error')
+            print(f"ERROR - [Main:S7] - Question Load And Check Failed: {error_msg}")
             exit(1)
         print(f"SUCCESS - {question_load_and_check_result['message']}")
     except Exception as error:
