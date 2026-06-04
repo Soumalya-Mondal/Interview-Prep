@@ -39,7 +39,7 @@ def db_table_create(database_file_path: str) -> dict[str, str]:
             input_token INTEGER NOT NULL DEFAULT 0,
             output_token INTEGER NOT NULL DEFAULT 0,
             model_name TEXT DEFAULT 'N/A',
-            status TEXT NOT NULL DEFAULT 'Not Processed' CHECK(status IN ('Not Processed', 'Processed'))
+            row_status INTEGER NOT NULL DEFAULT 1 CHECK(row_status IN (1, 2, 3))
         )
         """
         # execute the create table query and commit the changes

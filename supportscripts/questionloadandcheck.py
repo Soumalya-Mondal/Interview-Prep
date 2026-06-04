@@ -66,27 +66,22 @@ def question_load_and_check(question_file_path: str, database_file_path: str, sy
             """
             database_cursor.execute(insert_query, (question,))
 
-        # commit the changes and close the connection
+        # commit the changes
         database_connection.commit()
-        database_connection.close()
     except Exception as error:
         database_connection.close()
         return {'status': 'ERROR', 'step': '5', 'file_name': 'Question-Load-And-Check', 'message': str(error)}
 
     # Fetch Unanswered Questions From Database: S6
     try:
-        database_connection = sqlite3.connect(str(database_file_path))
-        database_cursor = database_connection.cursor()
-        
         # fetch all questions where final_question_text is still 'N/A' (unanswered)
         fetch_query = """
         SELECT id, actual_question_text FROM interview_qa_table 
-        WHERE final_question_text = 'N/A' AND status = 'Not Processed'
+        WHERE final_question_text = 'N/A'
         ORDER BY id ASC
         """
         database_cursor.execute(fetch_query)
         unanswered_questions = database_cursor.fetchall()
-        database_connection.close()
         
         if not unanswered_questions:
             return {'status': 'ERROR', 'step': '6', 'file_name': 'Question-Load-And-Check', 'message': 'No unanswered questions found in database'}
@@ -169,9 +164,6 @@ def question_load_and_check(question_file_path: str, database_file_path: str, sy
     
     # Update Database With Corrected Questions And Cumulative Tokens: S8
     try:
-        database_connection = sqlite3.connect(str(database_file_path))
-        database_cursor = database_connection.cursor()
-        
         for q_id, result in corrected_questions_dict.items():
             if result['status'] == 'SUCCESS':
                 # fetch current token values to calculate cumulative sum
@@ -206,7 +198,6 @@ def question_load_and_check(question_file_path: str, database_file_path: str, sy
                 pass
         
         database_connection.commit()
-        database_connection.close()
         
         return {
             'status': 'SUCCESS', 
@@ -215,5 +206,4 @@ def question_load_and_check(question_file_path: str, database_file_path: str, sy
             'corrected_questions': corrected_questions_dict
         }
     except Exception as error:
-        database_connection.close()
         return {'status': 'ERROR', 'step': '8', 'file_name': 'Question-Load-And-Check', 'message': str(error)}
