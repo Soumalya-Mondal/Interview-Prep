@@ -38,6 +38,7 @@ if __name__ == "__main__":
         from supportscripts.questionload import question_load
         from supportscripts.questionprocess import question_process
         from supportscripts.questionanswerprocess import question_answer_process
+        from supportscripts.htmlgenerator import html_generator
     except Exception as error:
         print(f'ERROR - [Main:S3] - {str(error)}')
         exit(1)
@@ -122,46 +123,14 @@ if __name__ == "__main__":
         print(f'ERROR - [Main:S9] - {str(error)}')
         exit(1)
 
-    # # Fetch All Records From Database:S13
-    # try:
-    #     database_cursor.execute("SELECT question_text, answer_text, input_token, output_token FROM interview_qa_table")
-    #     records = database_cursor.fetchall()
-    #     database_connection.close()
-    #     print(f'SUCCESS - Fetched {len(records)} Records And Database Connection Closed')
-    # except Exception as error:
-    #     print(f'ERROR - [Main:S13] - {str(error)}')
-    #     database_connection.close()
-    #     exit(1)
-
-    # # Generate Single HTML File From Database Records With Markdown Rendering:S13
-    # try:
-    #     if records:
-    #         print(f'SUCCESS - Found {len(records)} Records To Export As HTML')
-
-    #         # create markdown parser and render each answer
-    #         markdown = mistune.create_markdown()
-    #         qa_items = []
-    #         for index, (question, answer, input_token, output_token) in enumerate(records, start = 1):
-    #             qa_items.append({
-    #                 'index': index,
-    #                 'question': question,
-    #                 'answer_html': markdown(answer),
-    #                 'input_token': input_token,
-    #                 'output_token': output_token
-    #             })
-
-    #         # load jinja2 template from input folder and render
-    #         env = Environment(loader = FileSystemLoader(str(input_folder_path)))
-    #         template = env.get_template('AnswerTemplate.html')
-    #         rendered_html = template.render(qa_items = qa_items)
-
-    #         html_output_path = output_folder_path / 'Answer.html'
-    #         with open(str(html_output_path), 'w', encoding = 'utf-8') as html_file:
-    #             html_file.write(rendered_html)
-
-    #         print(f'SUCCESS - "Answer.html" Generated Successfully')
-    #     else:
-    #         print(f'INFO - No Records Found In Database To Export')
-    # except Exception as error:
-    #     print(f'ERROR - [Main:S13] - {str(error)}')
-    #     exit(1)
+    # Generate Single HTML File From Database Records With Markdown Rendering:S10
+    try:
+        html_generator_result = html_generator(str(database_file_path), str(input_folder_path), str(output_folder_path))
+        if html_generator_result.get('status') not in ['SUCCESS', 'INFO']:
+            error_msg = html_generator_result.get('message', 'Unknown error')
+            print(f"ERROR - [Main:S10] - HTML Generation Failed: {error_msg}")
+            exit(1)
+        print(f"SUCCESS - {html_generator_result['message']}")
+    except Exception as error:
+        print(f'ERROR - [Main:S10] - {str(error)}')
+        exit(1)
