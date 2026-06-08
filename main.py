@@ -37,6 +37,7 @@ if __name__ == "__main__":
         from supportscripts.dbtablecreate import db_table_create
         from supportscripts.questionload import question_load
         from supportscripts.questionprocess import question_process
+        from supportscripts.questionanswerprocess import question_answer_process
     except Exception as error:
         print(f'ERROR - [Main:S3] - {str(error)}')
         exit(1)
@@ -109,104 +110,17 @@ if __name__ == "__main__":
         print(f'ERROR - [Main:S8] - {str(error)}')
         exit(1)
 
-    # # Create And Test Azure OpenAI Client:S9
-    # try:
-    #     # initialize azure openai client with loaded environment variables
-    #     client = AzureOpenAI(
-    #         api_key = api_key,
-    #         api_version = api_version,
-    #         azure_endpoint = api_endpoint
-    #     )
-
-    #     # verify client object was created
-    #     if client is None:
-    #         print(f'ERROR - [Main:S9] - Failed To Create Azure OpenAI Client')
-    #         database_connection.close()
-    #         exit(1)
-
-    #     # test the client with a simple api call
-    #     test_response = client.chat.completions.create(
-    #         model = chat_model_name,
-    #         messages = [
-    #             {"role": "system", "content": "You are a helpful assistant."},
-    #             {"role": "user", "content": "Test connection. Reply with: SUCCESS"}
-    #         ],
-    #         temperature = 0.7,
-    #         max_completion_tokens = 10
-    #     )
-
-    #     # verify test response and check for success keyword
-    #     if test_response and test_response.choices and len(test_response.choices) > 0:
-    #         response_content = test_response.choices[0].message.content
-
-    #         # check if response contains "success"
-    #         if response_content and ('success' in response_content.lower()):
-    #             print(f'SUCCESS - Azure OpenAI Client Created And Tested Successfully')
-    #         else:
-    #             print(f'ERROR - [Main:S9] - API Validation Failed - Did Not Receive SUCCESS')
-    #             print(f'  Received Response: {response_content}')
-    #             database_connection.close()
-    #             exit(1)
-    #     else:
-    #         print(f'ERROR - [Main:S9] - Client Test Call Failed - No Response')
-    #         database_connection.close()
-    #         exit(1)
-    # except Exception as error:
-    #     print(f'ERROR - [Main:S9] - {str(error)}')
-    #     database_connection.close()
-    #     exit(1)
-
-    # # process questions with azure openai and store in database
-    # if questions_list and question_answer_system_prompt:
-    #     # loop through questions and process each one
-    #     for index, question in enumerate(questions_list, start = 1):
-    #         # Call Azure OpenAI API For Answer:S10
-    #         attempt = 0
-    #         while attempt < max_retries:
-    #             try:
-    #                 response = client.chat.completions.create(
-    #                     model = chat_model_name,
-    #                     messages = [
-    #                         {"role": "system", "content": question_answer_system_prompt},
-    #                         {"role": "user", "content": question}
-    #                     ],
-    #                     temperature = 0.7
-    #                 )
-    #                 # extract answer and token usage
-    #                 answer = response.choices[0].message.content
-    #                 prompt_tokens = response.usage.prompt_tokens
-    #                 completion_tokens = response.usage.completion_tokens
-    #                 # success, break the retry loop
-    #                 break
-    #             except Exception as error:
-    #                 attempt += 1
-    #                 if attempt < max_retries:
-    #                     # calculate wait time with exponential backoff
-    #                     wait_time = min(base_delay * (backoff_multiplier ** (attempt - 1)), max_wait)
-    #                     print(f'WARNING - [Main:S11] - API Call Failed For Q{index} (Attempt {attempt}/{max_retries}): {str(error)}')
-    #                     print(f'INFO - [Main:S11] - Retrying In {wait_time} Seconds...')
-    #                     time.sleep(wait_time)
-    #                 else:
-    #                     print(f'ERROR - [Main:S11] - API Call Failed For Q{index} After {max_retries} Retries: {str(error)}')
-    #                     database_connection.close()
-    #                     exit(1)
-
-    #         # Insert Into Database Using Global Connection:S12
-    #         try:
-    #             question_upper = question.upper().rstrip(string.punctuation) + '?'
-    #             database_cursor.execute(
-    #                 "INSERT INTO interview_qa_table (question_text, answer_text, input_token, output_token, model_name) VALUES (?, ?, ?, ?, ?)",
-    #                 (question_upper, answer, prompt_tokens, completion_tokens, chat_model_name)
-    #             )
-    #             database_connection.commit()
-    #             print(f'SUCCESS - Inserted "Q{index}" Into Database')
-    #         except Exception as db_error:
-    #             print(f'ERROR - [Main:S12] - Database Insert Failed For Q{index}: {str(db_error)}')
-    #             database_connection.close()
-    #             exit(1)
-
-    # else:
-    #     exit(1)
+    # Process Question Answers With Azure OpenAI Using "question_answer_process" Function:S9
+    try:
+        question_answer_process_result = question_answer_process(str(database_file_path), str(system_prompt_file_path_for_question_answer))
+        if question_answer_process_result.get('status') != 'SUCCESS':
+            error_msg = question_answer_process_result.get('message', 'Unknown error')
+            print(f"ERROR - [Main:S9] - Question Answer Process Failed: {error_msg}")
+            exit(1)
+        print(f"SUCCESS - {question_answer_process_result['message']}")
+    except Exception as error:
+        print(f'ERROR - [Main:S9] - {str(error)}')
+        exit(1)
 
     # # Fetch All Records From Database:S13
     # try:

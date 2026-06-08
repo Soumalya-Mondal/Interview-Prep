@@ -161,7 +161,8 @@ def question_process(database_file_path: str, system_prompt_file_path: str) -> d
                 SET final_question_text = ?, 
                     input_token = ?, 
                     output_token = ?, 
-                    model_name = ?
+                    model_name = ?,
+                    row_status = 2
                 WHERE id = ?
                 """
                 database_cursor.execute(update_query, (
