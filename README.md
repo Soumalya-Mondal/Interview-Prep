@@ -1,18 +1,18 @@
 # Interview Prep — Azure OpenAI
 
-A Python automation tool for technical interview preparation. It reads questions from a plain-text file, calls **Azure OpenAI** to generate structured Markdown answers, persists every Q&A with token usage in **SQLite**, and exports a self-contained **interactive HTML revision page**.
+A Python automation tool for technical interview preparation. It reads questions from a plain-text file, runs a **two-pass Azure OpenAI pipeline** to first correct each question and then generate a structured Markdown answer, persists everything with token usage in **SQLite**, and exports a self-contained **interactive HTML revision page**.
 
 ---
 
 ## Features
 
 - Reads questions from `input/InterviewQuestions.txt` — one question per line.
-- Sends each question to Azure OpenAI using a configurable system prompt that enforces a consistent Markdown response structure (overview, architecture, diagrams, code examples).
-- Stores questions (uppercased, normalised) along with answers and per-call token counts in a local SQLite database.
-- Exponential back-off retry logic (up to 5 attempts) for transient API failures.
+- **Pass 1 — Question correction** (`CorrectQuestionGenerationSystemPrompt.txt`): all questions are sent to Azure OpenAI concurrently (async) to clean and normalise each question into a well-formed technical interview question.
+- **Pass 2 — Answer generation** (`QuestionAnswerSystemPrompt.txt`): each corrected question is sent sequentially to Azure OpenAI which returns a structured Markdown response (overview, architecture, diagrams, code examples).
+- Cumulative token counts (pass 1 + pass 2) are stored per row in SQLite alongside both the original and corrected question text.
 - Renders all Q&A records into a single dark-themed **accordion HTML page** (`output/Answer.html`) with:
   - Syntax-highlighted code blocks via Prism.js
-  - Input / output token counts displayed per question
+  - Cumulative input / output token counts displayed per question
   - Smooth scroll-to-question on accordion toggle
 
 ---
@@ -22,7 +22,7 @@ A Python automation tool for technical interview preparation. It reads questions
 | Layer | Library / Tool |
 |---|---|
 | Language | Python `>=3.12` |
-| AI / LLM | [openai](https://pypi.org/project/openai/) — Azure OpenAI client |
+| AI / LLM | [openai](https://pypi.org/project/openai/) `>=2.38.0` — Azure OpenAI client (sync + async) |
 | HTML templating | [Jinja2](https://pypi.org/project/Jinja2/) `>=3.1.0` |
 | Markdown → HTML | [mistune](https://pypi.org/project/mistune/) `>=3.2.1` |
 | Environment config | [python-dotenv](https://pypi.org/project/python-dotenv/) `>=1.2.2` |
@@ -35,17 +35,25 @@ A Python automation tool for technical interview preparation. It reads questions
 
 ```text
 .
-├── main.py                          # Main script — API calls, DB, HTML export
-├── pyproject.toml                   # Project metadata and dependencies
-├── uv.lock                          # Locked dependency graph (uv)
+├── main.py                                          # Orchestrates all pipeline steps
+├── pyproject.toml                                   # Project metadata and dependencies
+├── uv.lock                                          # Locked dependency graph (uv)
 ├── input/
-│   ├── InterviewQuestions.txt       # One question per line
-│   ├── SystemPromptForQuestion.txt  # System prompt sent to Azure OpenAI
-│   └── AnswerTemplate.html          # Jinja2 HTML template for output page
+│   ├── InterviewQuestions.txt                       # One question per line
+│   ├── CorrectQuestionGenerationSystemPrompt.txt    # System prompt for question correction (pass 1)
+│   ├── QuestionAnswerSystemPrompt.txt               # System prompt for answer generation (pass 2)
+│   └── AnswerTemplate.html                          # Jinja2 HTML template for output page
+├── supportscripts/
+│   ├── credentialcheck.py                           # Loads and validates .env credentials
+│   ├── dbtablecreate.py                             # Creates SQLite DB and table
+│   ├── questionload.py                              # Reads questions from file → inserts into DB
+│   ├── questionprocess.py                           # Pass 1: async question correction via Azure OpenAI
+│   ├── questionanswerprocess.py                     # Pass 2: sequential answer generation via Azure OpenAI
+│   └── htmlgenerator.py                             # Fetches DB records → renders Answer.html
 ├── Database/
-│   └── interviewqa.db               # SQLite database (created at runtime)
+│   └── interviewqa.db                               # SQLite database (created at runtime)
 └── output/
-    └── Answer.html                  # Generated HTML revision page
+    └── Answer.html                                  # Generated HTML revision page
 ```
 
 ---
@@ -124,23 +132,20 @@ python main.py
 
 ## Execution Pipeline
 
-The script runs the following steps sequentially:
+`main.py` runs the following steps sequentially:
 
-| Step | Description |
-|---|---|
-| S1 | Import all Python modules |
-| S2 | Resolve folder and file paths |
-| S3 | Validate HTML template and create `output/` folder |
-| S4 | Load and validate `.env` credentials |
-| S5 | Load questions from `InterviewQuestions.txt` |
-| S6 | Load system prompt from `SystemPromptForQuestion.txt` |
-| S7 | Open SQLite database connection |
-| S8 | Create `interview_qa_table` if it does not exist |
-| S9 | Test Azure OpenAI client connectivity |
-| S10 | Call Azure OpenAI API for each question (with retry) |
-| S11 | Insert each Q&A with token counts into SQLite |
-| S12 | Fetch all records from database and close connection |
-| S13 | Render `output/Answer.html` from the Jinja2 template |
+| Step | Function / Module | Description |
+|---|---|---|
+| S1 | — | Import standard library and third-party modules |
+| S2 | — | Append project root to `sys.path` |
+| S3 | — | Import `supportscripts` modules |
+| S4 | — | Resolve all folder and file paths |
+| S5 | `credential_check` | Load `.env` and validate all 4 required environment variables |
+| S6 | `db_table_create` | Create `Database/interviewqa.db` and `interview_qa_table` if they don't exist |
+| S7 | `question_load` | Read `InterviewQuestions.txt` → insert each question into DB with `row_status = 1` |
+| S8 | `question_process` | **Pass 1** — correct all questions concurrently via `AsyncAzureOpenAI`; update DB to `row_status = 2` |
+| S9 | `question_answer_process` | **Pass 2** — generate a structured Markdown answer for each corrected question sequentially; update DB to `row_status = 3` |
+| S10 | `html_generator` | Fetch all `row_status = 3` records → render `output/Answer.html` via Jinja2 |
 
 ---
 
@@ -149,7 +154,7 @@ The script runs the following steps sequentially:
 `output/Answer.html` — a self-contained, dark-themed single-page web app:
 
 - Accordion layout: click a question to expand its answer.
-- Each question header shows input and output token counts.
+- Each question header shows cumulative input and output token counts.
 - Code blocks are syntax-highlighted (Prism.js autoloader).
 - No external dependencies at runtime — open directly in any browser.
 
@@ -159,65 +164,41 @@ The script runs the following steps sequentially:
 
 ```sql
 CREATE TABLE IF NOT EXISTS interview_qa_table (
-    id               INTEGER PRIMARY KEY AUTOINCREMENT,
-    question_text    TEXT      NOT NULL DEFAULT 'N/A',
-    answer_text      TEXT      NOT NULL DEFAULT 'N/A',
-    input_token      INTEGER   NOT NULL DEFAULT 0,
-    output_token     INTEGER   NOT NULL DEFAULT 0,
-    row_inserted_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    model_name       TEXT               DEFAULT 'N/A'
+    id                   INTEGER   PRIMARY KEY AUTOINCREMENT,
+    row_inserted_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    actual_question_text TEXT      NOT NULL DEFAULT 'N/A',
+    final_question_text  TEXT      NOT NULL DEFAULT 'N/A',
+    answer_text          TEXT      NOT NULL DEFAULT 'N/A',
+    input_token          INTEGER   NOT NULL DEFAULT 0,
+    output_token         INTEGER   NOT NULL DEFAULT 0,
+    model_name           TEXT               DEFAULT 'N/A',
+    row_status           INTEGER   NOT NULL DEFAULT 1 CHECK(row_status IN (1, 2, 3))
 );
 ```
 
-- `a) Ask me a question`
-- `b) Generate PDF`
-- `c) Exit`
+| Column | Description |
+|---|---|
+| `actual_question_text` | Raw question text as read from the input file |
+| `final_question_text` | Corrected question text produced by pass 1 |
+| `answer_text` | Structured Markdown answer produced by pass 2 |
+| `input_token` / `output_token` | Cumulative token counts across both passes |
+| `row_status` | `1` = inserted · `2` = question corrected · `3` = answer generated |
 
-On first run after upgrading, if legacy files exist under `input/`, the app copies them to `output/` automatically.
-
-### Ask mode (`a`)
-
-- Enter interview questions continuously.
-- Type `exit` or `quit` to stop question entry.
-- You will be asked `Any more questions? (y/n):`
-  - `y` -> continue asking
-  - any other value -> auto-generate PDF and terminate
-
-### PDF mode (`b`)
-
-- Exports all saved questions from SQLite to `output/Interview-Questions.pdf`.
-- If no data exists, prints `No content to export.`.
-
-## Data model
-
-The app stores content in `output/interview.db`, table `questions`:
-
-- `id` (auto-increment primary key)
-- `question` (corrected question text)
-- `answer` (structured model output)
-- `prompt_tokens`
-- `output_tokens`
-
-The app also performs lightweight schema migration for token columns if an older DB exists.
-
-## Reliability and error handling
-
-- API calls retry up to 5 times with exponential backoff capped at 10 seconds.
-- Invalid/empty model payloads are treated as retriable failures.
-- Missing token usage is safely stored as `0` to avoid runtime failures.
-- Missing required env vars fail fast with a clear `KeyError` at startup.
-
-## PDF formatting details
-
-- A4 layout with page border, footer page number, and readable margins.
-- One question per page.
-- Token usage printed under each question (`[P-<prompt>, O-<output>]`).
-- Unicode punctuation is normalized for reliable Times-font rendering.
+---
 
 ## Troubleshooting
 
-- **`KeyError: Missing environment variable...`**
-  - Verify `.env` exists in project root and includes all 4 required keys.
+- **`ERROR - [Main:S5] - Credential Check Failed`**
+  — Verify `.env` exists in the project root and contains all four required variables (`API_KEY`, `API_VERSION`, `API_ENDPOINT`, `CHAT_MODEL_NAME`).
+
+- **`ERROR - [Main:S8] - Question Process Failed`**
+  — Ensure `input/CorrectQuestionGenerationSystemPrompt.txt` exists and is not empty.
+
+- **`ERROR - [Main:S9] - Question Answer Process Failed`**
+  — Ensure `input/QuestionAnswerSystemPrompt.txt` exists and is not empty. Also check that pass 1 completed successfully (`row_status = 2` rows must exist).
+
+- **`No Records Found In Database To Export`**
+  — All pipeline steps must complete before HTML generation. Re-run `main.py` after fixing any upstream error.
 - **Retries followed by `All 5 attempts failed`**
   - Check endpoint, key, API version, deployment name, and network access.
 - **`No content to export.`**

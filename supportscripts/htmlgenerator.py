@@ -85,6 +85,6 @@ def html_generator(database_file_path: str, input_folder_path: str, output_folde
         with open(str(html_output_path), 'w', encoding = 'utf-8') as html_file:
             html_file.write(rendered_html)
 
-        return {'status': 'SUCCESS', 'step': '5', 'file_name': 'HTML-Generator', 'message': f'HTML File Generated Successfully: Answer.html ({len(records)} Records Exported)'}
+        return {'status': 'SUCCESS', 'step': '5', 'file_name': 'HTML-Generator', 'message': f'All {len(records)} Questions Answer Exported Into "output/Answer.html" File'}
     except Exception as error:
         return {'status': 'ERROR', 'step': '5', 'file_name': 'HTML-Generator', 'message': str(error)}
