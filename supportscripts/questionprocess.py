@@ -58,9 +58,8 @@ def question_process(database_file_path: str, system_prompt_file_path: str) -> d
         database_connection.close()
         return {'status': 'ERROR', 'step': '4', 'file_name': 'Question-Process', 'message': str(error)}
 
-    # Process Questions With Azure OpenAI: S5
+    # Define async function to call Azure OpenAI with JSON payload: S5
     try:
-        # define async function to call Azure OpenAI with JSON payload
         async def process_question(question_id: int, question_text: str) -> dict:
             try:
                 client = AsyncAzureOpenAI(
@@ -113,8 +112,12 @@ def question_process(database_file_path: str, system_prompt_file_path: str) -> d
                     'status': 'ERROR',
                     'message': str(error)
                 }
-        
-        # define async function to process all questions concurrently
+    except Exception as error:
+        database_connection.close()
+        return {'status': 'ERROR', 'step': '5', 'file_name': 'Question-Process', 'message': str(error)}
+    
+    # Define async function to process all questions concurrently: S6
+    try:
         async def process_all_questions():
             processed_questions_dict = {}
             tasks = [process_question(q_id, q_text) for q_id, q_text in questions_to_process]
@@ -125,14 +128,19 @@ def question_process(database_file_path: str, system_prompt_file_path: str) -> d
                 processed_questions_dict[q_id] = result
             
             return processed_questions_dict
-        
+    except Exception as error:
+        database_connection.close()
+        return {'status': 'ERROR', 'step': '6', 'file_name': 'Question-Process', 'message': str(error)}
+    
+    # Execute async function to process all questions: S7
+    try:
         # run async function using asyncio.run()
         processed_questions_dict = asyncio.run(process_all_questions())
     except Exception as error:
         database_connection.close()
-        return {'status': 'ERROR', 'step': '5', 'file_name': 'Question-Process', 'message': str(error)}
+        return {'status': 'ERROR', 'step': '7', 'file_name': 'Question-Process', 'message': str(error)}
     
-    # Update Database With Processed Questions And Cumulative Tokens: S6
+    # Update Database With Processed Questions And Cumulative Tokens: S8
     try:
         for q_id, result in processed_questions_dict.items():
             if result['status'] == 'SUCCESS':
@@ -164,18 +172,12 @@ def question_process(database_file_path: str, system_prompt_file_path: str) -> d
                     q_id
                 ))
             else:
-                # skip if processing failed, record remains unchanged
                 pass
         
         database_connection.commit()
         database_connection.close()
         
-        return {
-            'status': 'SUCCESS', 
-            'file_name': 'Question-Process', 
-            'message': 'All questions processed successfully and database updated.',
-            'processed_questions': processed_questions_dict
-        }
+        return {'status': 'SUCCESS', 'file_name': 'Question-Process', 'message': 'All Questions Processed Successfully And Database Updated.'}
     except Exception as error:
         database_connection.close()
-        return {'status': 'ERROR', 'step': '6', 'file_name': 'Question-Process', 'message': str(error)}
+        return {'status': 'ERROR', 'step': '8', 'file_name': 'Question-Process', 'message': str(error)}

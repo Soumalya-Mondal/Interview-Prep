@@ -35,7 +35,8 @@ if __name__ == "__main__":
     try:
         from supportscripts.credentialcheck import credential_check
         from supportscripts.dbtablecreate import db_table_create
-        from supportscripts.questionloadandcheck import question_load_and_check
+        from supportscripts.questionload import question_load
+        from supportscripts.questionprocess import question_process
     except Exception as error:
         print(f'ERROR - [Main:S3] - {str(error)}')
         exit(1)
@@ -84,19 +85,31 @@ if __name__ == "__main__":
         print(f'ERROR - [Main:S6] - {str(error)}')
         exit(1)
 
-    # Load Questions From File And Insert Into Database Using "question_load_and_check" Function:S7
+    # Load Questions From File And Insert Into Database Using "question_load" Function:S7
     try:
-        question_load_and_check_result = question_load_and_check(str(question_file_path), str(database_file_path), str(system_prompt_file_path_for_correct_question))
-        if question_load_and_check_result.get('status') != 'SUCCESS':
-            error_msg = question_load_and_check_result.get('message', 'Unknown error')
-            print(f"ERROR - [Main:S7] - Question Load And Check Failed: {error_msg}")
+        question_load_result = question_load(str(question_file_path), str(database_file_path))
+        if question_load_result.get('status') != 'SUCCESS':
+            error_msg = question_load_result.get('message', 'Unknown error')
+            print(f"ERROR - [Main:S7] - Question Load Failed: {error_msg}")
             exit(1)
-        print(f"SUCCESS - {question_load_and_check_result['message']}")
+        print(f"SUCCESS - {question_load_result['message']}")
     except Exception as error:
         print(f'ERROR - [Main:S7] - {str(error)}')
         exit(1)
 
-    # # Create And Test Azure OpenAI Client:S8
+    # Process Questions With Azure OpenAI Using "question_process" Function:S8
+    try:
+        question_process_result = question_process(str(database_file_path), str(system_prompt_file_path_for_correct_question))
+        if question_process_result.get('status') != 'SUCCESS':
+            error_msg = question_process_result.get('message', 'Unknown error')
+            print(f"ERROR - [Main:S8] - Question Process Failed: {error_msg}")
+            exit(1)
+        print(f"SUCCESS - {question_process_result['message']}")
+    except Exception as error:
+        print(f'ERROR - [Main:S8] - {str(error)}')
+        exit(1)
+
+    # # Create And Test Azure OpenAI Client:S9
     # try:
     #     # initialize azure openai client with loaded environment variables
     #     client = AzureOpenAI(
@@ -107,7 +120,7 @@ if __name__ == "__main__":
 
     #     # verify client object was created
     #     if client is None:
-    #         print(f'ERROR - [Main:S8] - Failed To Create Azure OpenAI Client')
+    #         print(f'ERROR - [Main:S9] - Failed To Create Azure OpenAI Client')
     #         database_connection.close()
     #         exit(1)
 
@@ -130,16 +143,16 @@ if __name__ == "__main__":
     #         if response_content and ('success' in response_content.lower()):
     #             print(f'SUCCESS - Azure OpenAI Client Created And Tested Successfully')
     #         else:
-    #             print(f'ERROR - [Main:S8] - API Validation Failed - Did Not Receive SUCCESS')
+    #             print(f'ERROR - [Main:S9] - API Validation Failed - Did Not Receive SUCCESS')
     #             print(f'  Received Response: {response_content}')
     #             database_connection.close()
     #             exit(1)
     #     else:
-    #         print(f'ERROR - [Main:S8] - Client Test Call Failed - No Response')
+    #         print(f'ERROR - [Main:S9] - Client Test Call Failed - No Response')
     #         database_connection.close()
     #         exit(1)
     # except Exception as error:
-    #     print(f'ERROR - [Main:S8] - {str(error)}')
+    #     print(f'ERROR - [Main:S9] - {str(error)}')
     #     database_connection.close()
     #     exit(1)
 
@@ -147,7 +160,7 @@ if __name__ == "__main__":
     # if questions_list and question_answer_system_prompt:
     #     # loop through questions and process each one
     #     for index, question in enumerate(questions_list, start = 1):
-    #         # Call Azure OpenAI API For Answer:S9
+    #         # Call Azure OpenAI API For Answer:S10
     #         attempt = 0
     #         while attempt < max_retries:
     #             try:
@@ -170,15 +183,15 @@ if __name__ == "__main__":
     #                 if attempt < max_retries:
     #                     # calculate wait time with exponential backoff
     #                     wait_time = min(base_delay * (backoff_multiplier ** (attempt - 1)), max_wait)
-    #                     print(f'WARNING - [Main:S10] - API Call Failed For Q{index} (Attempt {attempt}/{max_retries}): {str(error)}')
-    #                     print(f'INFO - [Main:S10] - Retrying In {wait_time} Seconds...')
+    #                     print(f'WARNING - [Main:S11] - API Call Failed For Q{index} (Attempt {attempt}/{max_retries}): {str(error)}')
+    #                     print(f'INFO - [Main:S11] - Retrying In {wait_time} Seconds...')
     #                     time.sleep(wait_time)
     #                 else:
-    #                     print(f'ERROR - [Main:S10] - API Call Failed For Q{index} After {max_retries} Retries: {str(error)}')
+    #                     print(f'ERROR - [Main:S11] - API Call Failed For Q{index} After {max_retries} Retries: {str(error)}')
     #                     database_connection.close()
     #                     exit(1)
 
-    #         # Insert Into Database Using Global Connection:S11
+    #         # Insert Into Database Using Global Connection:S12
     #         try:
     #             question_upper = question.upper().rstrip(string.punctuation) + '?'
     #             database_cursor.execute(
@@ -188,21 +201,21 @@ if __name__ == "__main__":
     #             database_connection.commit()
     #             print(f'SUCCESS - Inserted "Q{index}" Into Database')
     #         except Exception as db_error:
-    #             print(f'ERROR - [Main:S11] - Database Insert Failed For Q{index}: {str(db_error)}')
+    #             print(f'ERROR - [Main:S12] - Database Insert Failed For Q{index}: {str(db_error)}')
     #             database_connection.close()
     #             exit(1)
 
     # else:
     #     exit(1)
 
-    # # Fetch All Records From Database:S12
+    # # Fetch All Records From Database:S13
     # try:
     #     database_cursor.execute("SELECT question_text, answer_text, input_token, output_token FROM interview_qa_table")
     #     records = database_cursor.fetchall()
     #     database_connection.close()
     #     print(f'SUCCESS - Fetched {len(records)} Records And Database Connection Closed')
     # except Exception as error:
-    #     print(f'ERROR - [Main:S12] - {str(error)}')
+    #     print(f'ERROR - [Main:S13] - {str(error)}')
     #     database_connection.close()
     #     exit(1)
 
