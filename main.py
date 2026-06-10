@@ -106,7 +106,8 @@ if __name__ == "__main__":
             error_msg = question_process_result.get('message', 'Unknown error')
             print(f"ERROR - [Main:S8] - Question Process Failed: {error_msg}")
             exit(1)
-        print(f"SUCCESS - {question_process_result['message']}")
+        if question_process_result['message']:
+            print(f"SUCCESS - {question_process_result['message']}")
     except Exception as error:
         print(f'ERROR - [Main:S8] - {str(error)}')
         exit(1)

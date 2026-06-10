@@ -54,7 +54,7 @@ def question_load(question_file_path: str, database_file_path: str) -> dict[str,
         database_connection.commit()
         database_connection.close()
         
-        return {'status': 'SUCCESS', 'file_name': 'Question-Load', 'message': f'Successfully Loaded {len(raw_question_text)} Questions Into Database With'}
+        return {'status': 'SUCCESS', 'file_name': 'Question-Load', 'message': f'Successfully Loaded {len(raw_question_text)} Questions Into Database'}
     except Exception as error:
         database_connection.close()
         return {'status': 'ERROR', 'step': '5', 'file_name': 'Question-Load', 'message': str(error)}

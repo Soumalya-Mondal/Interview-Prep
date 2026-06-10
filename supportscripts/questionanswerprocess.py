@@ -61,23 +61,43 @@ def question_answer_process(database_file_path: str, system_prompt_file_path: st
         client = AzureOpenAI(
             azure_endpoint=os.getenv('API_ENDPOINT'),
             api_key=os.getenv('API_KEY'),
-            api_version=os.getenv('API_VERSION')
+            api_version=os.getenv('API_VERSION'),
+            timeout=30.0
         )
     except Exception as error:
         database_connection.close()
-        return {'status': 'ERROR', 'step': '5', 'file_name': 'Question-Answer-Process', 'message': str(error)}
+        return {'status': 'ERROR', 'step': '5', 'file_name': 'Question-Answer-Process', 'message': f'Azure OpenAI Client Init Failed: {str(error)}'}
 
     # Process Answers Sequentially With Ladder Logic: S6
+    import time
+    max_retries = 3
+    base_delay = 1
+    
     for answer_id, question_text, existing_input_tokens, existing_output_tokens in answers_to_process:
         try:
-            # Call Azure OpenAI API
-            response = client.chat.completions.create(
-                model=os.getenv('CHAT_MODEL_NAME'),
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": question_text}
-                ]
-            )
+            # Call Azure OpenAI API with retry logic
+            response = None
+            for attempt in range(max_retries):
+                try:
+                    response = client.chat.completions.create(
+                        model=os.getenv('CHAT_MODEL_NAME'),
+                        messages=[
+                            {"role": "system", "content": system_prompt},
+                            {"role": "user", "content": question_text}
+                        ],
+                        timeout=30.0
+                    )
+                    break  # Success, exit retry loop
+                except Exception as retry_error:
+                    if attempt < max_retries - 1:
+                        wait_time = base_delay * (2 ** attempt)
+                        print(f"WARNING - Answer ID {answer_id}: Attempt {attempt + 1} failed, retrying in {wait_time}s...")
+                        time.sleep(wait_time)
+                    else:
+                        raise retry_error
+            
+            if response is None:
+                raise Exception("Failed to get response after retries")
 
             # Extract response and token usage
             processed_answer_text = response.choices[0].message.content
@@ -104,7 +124,7 @@ def question_answer_process(database_file_path: str, system_prompt_file_path: st
             print(f"SUCCESS - Answer ID: {answer_id}; Input Tokens = {input_tokens}, Output Tokens = {output_tokens}")
         except Exception as error:
             database_connection.close()
-            return {'status': 'ERROR', 'step': '6', 'file_name': 'Question-Answer-Process', 'message': str(error)}
+            return {'status': 'ERROR', 'step': '6', 'file_name': 'Question-Answer-Process', 'message': f'Answer ID {answer_id}: {str(error)}'}
 
     # Close Database Connection And Return Success: S7
     try:

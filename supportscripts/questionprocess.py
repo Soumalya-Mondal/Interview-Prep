@@ -5,9 +5,8 @@ def question_process(database_file_path: str, system_prompt_file_path: str) -> d
         import sqlite3
         from pathlib import Path
         import os
-        import asyncio
         import json
-        from openai import AsyncAzureOpenAI
+        from openai import AzureOpenAI
     except Exception as error:
         return {'status': 'ERROR', 'step': '1', 'file_name': 'Question-Process', 'message': str(error)}
 
@@ -58,27 +57,54 @@ def question_process(database_file_path: str, system_prompt_file_path: str) -> d
         database_connection.close()
         return {'status': 'ERROR', 'step': '4', 'file_name': 'Question-Process', 'message': str(error)}
 
-    # Define async function to call Azure OpenAI with JSON payload: S5
+    # Define Azure OpenAI Client: S5
     try:
-        async def process_question(question_id: int, question_text: str) -> dict:
+        client = AzureOpenAI(
+            azure_endpoint=os.getenv('API_ENDPOINT'),
+            api_key=os.getenv('API_KEY'),
+            api_version=os.getenv('API_VERSION'),
+            timeout=30.0
+        )
+    except Exception as error:
+        database_connection.close()
+        return {'status': 'ERROR', 'step': '5', 'file_name': 'Question-Process', 'message': f'Azure OpenAI Client Init Failed: {str(error)}'}
+    
+    # Process Questions Sequentially: S6
+    try:
+        import time
+        max_retries = 3
+        base_delay = 1
+        
+        processed_questions_dict = {}
+        
+        for question_id, question_text in questions_to_process:
             try:
-                client = AsyncAzureOpenAI(
-                    azure_endpoint=os.getenv('API_ENDPOINT'),
-                    api_key=os.getenv('API_KEY'),
-                    api_version=os.getenv('API_VERSION')
-                )
+                # Call Azure OpenAI API with retry logic
+                response = None
+                for attempt in range(max_retries):
+                    try:
+                        # prepare JSON payload with id and question
+                        json_payload = json.dumps({"id": question_id, "question": question_text})
+                        
+                        response = client.chat.completions.create(
+                            model=os.getenv('CHAT_MODEL_NAME'),
+                            messages=[
+                                {"role": "system", "content": system_prompt},
+                                {"role": "user", "content": json_payload}
+                            ],
+                            timeout=30.0
+                        )
+                        break  # Success, exit retry loop
+                    except Exception as retry_error:
+                        if attempt < max_retries - 1:
+                            wait_time = base_delay * (2 ** attempt)
+                            print(f"WARNING - Question ID {question_id}: Attempt {attempt + 1} failed, retrying in {wait_time}s...")
+                            time.sleep(wait_time)
+                        else:
+                            raise retry_error
                 
-                # prepare JSON payload with id and question
-                json_payload = json.dumps({"id": question_id, "question": question_text})
-                
-                # use the loaded system prompt from file
-                response = await client.chat.completions.create(
-                    model=os.getenv('CHAT_MODEL_NAME'),
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": json_payload}
-                    ]
-                )
+                if response is None:
+                    raise Exception("Failed to get response after retries")
                 
                 processed_text = response.choices[0].message.content
                 input_tokens = response.usage.prompt_tokens
@@ -92,7 +118,7 @@ def question_process(database_file_path: str, system_prompt_file_path: str) -> d
                     # if response is not valid JSON, use it as-is
                     processed_question_text = processed_text
                 
-                return {
+                processed_questions_dict[question_id] = {
                     'id': question_id,
                     'original_question': question_text,
                     'processed_question': processed_question_text,
@@ -101,46 +127,19 @@ def question_process(database_file_path: str, system_prompt_file_path: str) -> d
                     'model_name': os.getenv('CHAT_MODEL_NAME'),
                     'status': 'SUCCESS'
                 }
+                
+                # Print success message immediately after processing each question
+                print(f"SUCCESS - Question ID: {question_id}; Input Tokens = {input_tokens}, Output Tokens = {output_tokens}")
+            
             except Exception as error:
-                return {
-                    'id': question_id,
-                    'original_question': question_text,
-                    'processed_question': None,
-                    'input_tokens': 0,
-                    'output_tokens': 0,
-                    'model_name': os.getenv('CHAT_MODEL_NAME'),
-                    'status': 'ERROR',
-                    'message': str(error)
-                }
-    except Exception as error:
-        database_connection.close()
-        return {'status': 'ERROR', 'step': '5', 'file_name': 'Question-Process', 'message': str(error)}
+                database_connection.close()
+                return {'status': 'ERROR', 'step': '6', 'file_name': 'Question-Process', 'message': f'Error processing Question ID {question_id}: {str(error)}'}
     
-    # Define async function to process all questions concurrently: S6
-    try:
-        async def process_all_questions():
-            processed_questions_dict = {}
-            tasks = [process_question(q_id, q_text) for q_id, q_text in questions_to_process]
-            results = await asyncio.gather(*tasks)
-            
-            for result in results:
-                q_id = result['id']
-                processed_questions_dict[q_id] = result
-            
-            return processed_questions_dict
     except Exception as error:
         database_connection.close()
         return {'status': 'ERROR', 'step': '6', 'file_name': 'Question-Process', 'message': str(error)}
     
-    # Execute async function to process all questions: S7
-    try:
-        # run async function using asyncio.run()
-        processed_questions_dict = asyncio.run(process_all_questions())
-    except Exception as error:
-        database_connection.close()
-        return {'status': 'ERROR', 'step': '7', 'file_name': 'Question-Process', 'message': str(error)}
-    
-    # Update Database With Processed Questions And Cumulative Tokens: S8
+    # Update Database With Processed Questions And Cumulative Tokens: S7
     try:
         for q_id, result in processed_questions_dict.items():
             if result['status'] == 'SUCCESS':
@@ -178,7 +177,7 @@ def question_process(database_file_path: str, system_prompt_file_path: str) -> d
         database_connection.commit()
         database_connection.close()
         
-        return {'status': 'SUCCESS', 'file_name': 'Question-Process', 'message': 'All Questions Processed Successfully And Database Updated.'}
+        return {'status': 'SUCCESS', 'file_name': 'Question-Process', 'message': ''}
     except Exception as error:
         database_connection.close()
-        return {'status': 'ERROR', 'step': '8', 'file_name': 'Question-Process', 'message': str(error)}
+        return {'status': 'ERROR', 'step': '7', 'file_name': 'Question-Process', 'message': str(error)}
