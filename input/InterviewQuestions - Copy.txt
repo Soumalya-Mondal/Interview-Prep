@@ -1,0 +1,820 @@
+What are Python decorators and where have you used
+Explain Python generators and their benefits.
+Difference between multiprocessing and multithreading
+What are Python context managers?
+How does Python memory management work?
+Explain GIL and how it impacts performance.
+What are Python dataclasses?
+Difference between list, tuple, and set.
+Explain deep copy vs shallow copy.
+What is monkey patching in Python?
+How do you handle concurrency in Python automation
+Explain asyne/await in Python.
+What is the difference between threading and asyncio?
+What are Python metaclasses?
+Explain Python's MRO (Method Resolution Order).
+How do you optimize Python performance?
+Explain Python's garbage collection.
+What are Python descriptors?
+Difference between Flask and FastAPI.
+How do you structure large Python applications?
+Explain Python packaging and dependency
+What is pip vs poetry?
+How do you manage environment isolation?
+What is WSGI?
+What is ASGI?
+How does Flask handle requests internally?
+What are Python type hints?
+Explain Python logging architecture.
+What are common Python design patterns?
+How do you write testable Python code?
+Explain dependency injection in Python.
+How do you secure Python APIs?
+What is serialization in Python?
+What is pickle and why can it be dangerous?
+Explain Python's import system.
+How do you build CLI tools in Python?
+What is the difference between str and repr?
+What is duck typing?
+Explain Python's event loop.
+What is the difference between synchronous and asynchronous?
+What are Large Language Models?
+How do transformers work?
+What is self-attention?
+What Is Tokenization?
+Difference between BERT and GPT.
+What is prompt engineering?
+What are prompt injection attacks?
+What is Retrieval Augmented Generation (RAG)?
+How do embeddings work?
+What are vector databases?
+Explain cosine similarity.
+How do you build an LLM pipeline?
+What is hallucination in LLMs?
+How do you reduce hallucinations?
+Explain chain-of-thought prompting.
+What is few-shot learning?
+What is zero-shot learning?
+What is temperature in LLMs?
+What is top-p sampling?
+Difference between fine-tuning and prompt engineering.
+What is RLHF?
+How do you evaluate LLM outputs?
+What are guardrails in GenAI systems?
+What is function calling in LLM APIs?
+What is context window limitation?
+What is embedding dimensionality?
+Explain semantic search.
+How do you build enterprise LLM applications?
+What is vector indexing?
+Explain chunking strategies for documents.
+What are LLM agents?
+What is tool usage in AI agents?
+What are autonomous agents?
+Explain Lang-Chain architecture.
+What are LLM chains?
+How do you integrate LLMs with APIs?
+What are hallucination detection techniques?
+Explain evaluation metrics for LLMs.
+What is prompt caching?
+What are safety layers for enterprise AI?
+Difference between supervised and unsupervised learning.
+What is overfitting?
+What is underfitting?
+What is regularization?
+Difference between L1 and L2 regularization.
+What is gradient descent?
+What is stochastic gradient descent?
+What are evaluation metrics in ML?
+What is cross validation?
+What is feature engineering?
+What is feature scaling?
+Difference between PCA and feature selection.
+What are ensemble models?
+Explain random forests.
+Explain boosting algorithms.
+What is bias-variance trade-off?
+What is confusion matrix?
+What is ROC curve?
+What is AUC score?
+What is model drift?
+What is data leakage?
+What is hyperparameter tuning?
+What are pipelines in ML?
+What is model explainability?
+What is SHAP or LIME?
+What is NLP preprocessing?
+Explain tokenization.
+What is lemmatization?
+Difference between stemming and lemmatization.
+What is named entity recognition?
+What is POS tagging?
+How does spaCy pipeline work?
+Difference between NLTK and spaCy.
+What are word embeddings?
+Explain TF-IDF.
+What are n-grams?
+How do you remove stopwords?
+What is sentiment analysis?
+What is topic modeling?
+How do you build a custom NLP pipeline?
+Difference between SQL and NoSQL.
+When would you choose MongoDB?
+Explain indexing in MongoDB.
+What are MongoDB aggregations?
+What is sharding?
+What is replication?
+What are transactions in MongoDB?
+Explain PostgreSQL indexing.
+What is normalization?
+What is denormalization?
+What is query optimization?
+What are joins?
+Explain ACID properties.
+What is CAP theorem?
+What is eventual consistency?
+What is schema design?
+What is connection pooling?
+How do you optimize slow queries?
+What is partitioning?
+What is database migration?
+What is cloud computing?
+Difference between IaaS, PaaS, SaaS.
+What is Azure Resource Manager?
+What is AWS EC2?
+What is AWS Lambda?
+What is serverless architecture?
+What is Azure Functions?
+What is containerization?
+What is Docker?
+What is Kubernetes?
+What is CI/CD pipeline?
+What is Infrastructure as Code?
+What is Terraform?
+What is monitoring in cloud systems?
+What is logging infrastructure?
+What is autoscaling?
+What is load balancing?
+What is cloud security model?
+What is IAM?
+What is secrets management?
+What is workflow automation?
+What is infrastructure automation?
+What are idempotent operations?
+What is configuration management?
+What is Ansible?
+What is event-driven automation?
+What is CI/CD automation?
+What is incident automation?
+What is runbook automation?
+What are self-healing systems?
+What is orchestration vs automation?
+What is cron scheduling?
+What are automation pipelines?
+What is log-driven automation?
+What are triggers in automation systems?
+What are failure handling strategies?
+What is distributed job scheduling?
+What is retry logic?
+What are observability practices?
+What are alerting systems?
+How would you design an AI-driven incident analysis system?
+How would you build an LLM-powered automation platform?
+How would you design a scalable vector search system?
+How would you design a log analysis system for millions of events?
+How would you build an enterprise RAG pipeline?
+How would you scale a Flask API to millions of requests?
+How would you design a distributed automation framework?
+How would you design a workflow orchestration system?
+How would you design a recommendation system for IT incidents?
+How would you design secure AI APIs?
+How would you monitor AI systems in production?
+How would you prevent hallucinations in enterprise AI?
+How would you design a scalable document processing system?
+How would you implement AI governance in production?
+How would you design an automation engine like E.S.O.A?
+How would you design a prompt management platform?
+How would you build a real-time anomaly detection system?
+How would you design AI pipelines for incident response?
+How would you design an enterprise AI architecture?
+How would you design a GenAI platform for internal company automation?
+What is a Large Language Model, and how does it generate text?
+Explain the difference between GPT-style models and BERT-style models.
+What is tokenization in LLMs?
+What are embeddings, and why are they important in GenAI applications?
+What is the difference between zero-shot, one-shot, and few-shot prompting?
+How do you design an effective prompt for a business use case?
+What is prompt injection, and how can it be prevented?
+What is hallucination in LLMs?
+How do you reduce hallucination in an LLM-based system?
+What is temperature in LLM inference?
+What is top-p sampling?
+What is the difference between deterministic and creative LLM output?
+What are system prompts, user prompts, and assistant prompts?
+How do you evaluate prompt quality?
+What is chain-of-thought prompting?
+What is structured output generation from LLMs?
+How would you make an LLM return valid JSON consistently?
+What are guardrails in GenAI applications?
+What is the difference between fine-tuning and prompt engineering?
+When would you choose prompt engineering instead of fine-tuning?
+What is Retrieval-Augmented Generation?
+Why is RAG useful compared to using only an LLM?
+Explain the complete flow of a RAG pipeline.
+What is document chunking?
+How do you decide the ideal chunk size?
+What is chunk overlap, and why is it used?
+What happens if chunk size is too small?
+What happens if chunk size is too large?
+What are semantic embeddings?
+What is cosine similarity?
+What is vector similarity search?
+What is top-k retrieval?
+How do you choose the value of top-k?
+What is context window limitation in LLMs?
+How do you handle large documents in RAG?
+How do you reduce irrelevant context in RAG?
+What is metadata filtering in vector search?
+What is hybrid search?
+What is reranking in RAG?
+How would you evaluate the accuracy of a RAG system?
+What is Retrieval-Augmented Generation?
+Why is RAG useful compared to using only an LLM?
+Explain the complete flow of a RAG pipeline.
+What is document chunking?
+How do you decide the ideal chunk size?
+What is chunk overlap, and why is it used?
+What happens if chunk size is too small?
+What happens if chunk size is too large?
+What are semantic embeddings?
+What is cosine similarity?
+What is vector similarity search?
+What is top-k retrieval?
+How do you choose the value of top-k?
+What is context window limitation in LLMs?
+How do you handle large documents in RAG?
+How do you reduce irrelevant context in RAG?
+What is metadata filtering in vector search?
+What is hybrid search?
+What is reranking in RAG?
+How would you evaluate the accuracy of a RAG system?
+What is LangChain?
+Why do we use LangChain in LLM applications?
+What are chains in LangChain?
+What are agents in LangChain?
+What is the difference between a chain and an agent?
+What are tools in LangChain agents?
+What is a retriever in LangChain?
+What is a document loader in LangChain?
+What is a text splitter in LangChain?
+How do you build a RAG pipeline using LangChain?
+What is conversational memory in LangChain?
+What are different types of memory in LangChain?
+What is LangGraph?
+How is LangGraph different from LangChain?
+When would you use LangGraph instead of a simple chain?
+What is state management in LangGraph?
+How can LangGraph help in multi-step reasoning workflows?
+How do you debug a LangChain pipeline?
+How do you handle failures in LangChain tools?
+How would you productionize a LangChain-based application?
+What is HuggingFace Transformers?
+What is the transformer architecture?
+Explain self-attention in simple terms.
+What are attention heads?
+What is positional encoding?
+What is the difference between encoder-only, decoder-only, and encoder-decoder models?
+What is LLaMA?
+What is the difference between LLaMA2 and LLaMA3?
+How do you load a pre-trained model from HuggingFace?
+What is a tokenizer in HuggingFace?
+What is model inference?
+What is model fine-tuning?
+What is instruction tuning?
+What is LoRA?
+What is QLoRA?
+What is quantization?
+Why is quantization useful for LLM deployment?
+What is the difference between 4-bit and 8-bit quantization?
+What is transfer learning?
+How would you fine-tune a text classification model?
+What is supervised learning?
+What is unsupervised learning?
+What is reinforcement learning?
+What is regression?
+What is classification?
+What is clustering?
+What is overfitting?
+What is underfitting?
+How do you prevent overfitting?
+What is regularization?
+What is L1 regularization?
+What is L2 regularization?
+What is bias-variance tradeoff?
+What is cross-validation?
+Why do we split data into train, validation, and test sets?
+What is feature engineering?
+What is feature scaling?
+What is standardization?
+What is normalization?
+How do you handle missing values in a dataset?
+What is accuracy?
+When is accuracy not a good metric?
+What is precision?
+What is recall?
+What is F1-score?
+What is confusion matrix?
+What is ROC-AUC?
+What is mean squared error?
+What is root mean squared error?
+What is mean absolute error?
+How do you evaluate a regression model?
+How do you evaluate a classification model?
+What is class imbalance?
+How do you handle imbalanced datasets?
+What is SMOTE?
+What is threshold tuning?
+What is model calibration?
+How do you compare two ML models?
+What is data leakage?
+How do you prevent data leakage?
+Why is Python widely used in AI/ML?
+What are Python lists, tuples, sets, and dictionaries?
+What is list comprehension?
+What is a generator in Python?
+What is the difference between shallow copy and deep copy?
+What are decorators in Python?
+What is exception handling?
+How do you handle large files in Python?
+What is Pandas used for?
+What is the difference between DataFrame and Series?
+How do you handle missing values in Pandas?
+How do you merge two DataFrames?
+What is groupby in Pandas?
+What is vectorization in NumPy?
+Why is NumPy faster than normal Python lists?
+What is an ETL pipeline?
+How do you design a reliable ETL pipeline?
+What is incremental data sync?
+How do you implement logging in Python pipelines?
+How do you handle API failures in an ETL process?
+What is a vector database?
+Why do we use FAISS?
+What is ChromaDB?
+What is the difference between FAISS and ChromaDB?
+What is indexing in vector databases?
+What is approximate nearest neighbor search?
+What is PostgreSQL?
+What are primary keys and foreign keys?
+What is indexing in PostgreSQL?
+How do indexes improve query performance?
+What are joins in SQL?
+Explain inner join, left join, and right join.
+What is normalization in databases?
+What is denormalization?
+What is MongoDB?
+How is MongoDB different from PostgreSQL?
+What is an aggregation pipeline in MongoDB?
+When would you choose MongoDB over PostgreSQL?
+How do you design a database for ticket analytics?
+How do you optimize slow database queries?
+What is MLOps?
+Why is MLOps important for production ML systems?
+What are the stages of an ML lifecycle?
+What is model versioning?
+What is data versioning?
+What is model monitoring?
+What is model drift?
+What is data drift?
+How do you detect model drift?
+What is CI/CD in ML projects?
+How do you deploy an ML model as an API?
+What is FastAPI?
+What is Flask?
+What is Docker?
+Why do we containerize ML applications?
+What is GitHub Actions?
+How do you deploy an application on Azure VM?
+What is Azure OpenAI?
+What is AWS Lambda?
+How would you secure API keys in a production AI application?
+What is computer vision?
+What is image classification?
+What is object detection?
+What is the difference between classification and object detection?
+What is YOLO?
+How does YOLO detect objects in real time?
+What is YOLOv3?
+What is bounding box prediction?
+What is Intersection over Union?
+What is non-maximum suppression?
+What is OpenCV used for?
+What is background subtraction?
+How would you build a traffic density detection system?
+What features can be used for traffic prediction?
+How do you evaluate an object detection model?
+What is mean average precision?
+How would you improve accuracy in a traffic detection model?
+How would you handle low-light or poor-quality camera feeds?
+How would you explain your traffic density project in an interview?
+How would you explain your RAG-based scientific document Q&A project end-to-end?
+What are Python’s key features?
+Explain Python’s memory management.
+What is the Global Interpreter Lock?
+Why does Python have GIL?
+How does GIL impact multithreading?
+What are mutable and immutable objects?
+What is the difference between list, tuple, set, and dict?
+What is the difference between is and ==?
+What is dynamic typing in Python?
+What is duck typing?
+What are Python namespaces?
+What is LEGB rule in Python?
+What is the difference between local, global, and nonlocal variables?
+What is the use of global keyword?
+What is the use of nonlocal keyword?
+What are Python built-in data types?
+What is type hinting in Python?
+What are Any, Optional, Union, and Literal in typing?
+What is the difference between shallow copy and deep copy?
+How does Python garbage collection work?
+How does a Python dictionary work internally?
+Why are Python dictionaries fast?
+What is hashing?
+What makes an object hashable?
+Why can a tuple be used as a dictionary key but list cannot?
+What is dictionary collision?
+How does Python handle hash collisions?
+What is the time complexity of dictionary lookup?
+What is the difference between set and frozenset?
+How do you remove duplicates from a list?
+How do you sort a list of dictionaries?
+What is the difference between sort() and sorted()?
+What are collections.defaultdict and collections.Counter?
+What is collections.deque?
+When would you use deque instead of list?
+What is namedtuple?
+What is dataclass?
+Difference between dataclass and normal class?
+What are slots in Python?
+How does __slots__ improve memory usage?
+What are first-class functions?
+What are higher-order functions?
+What is a lambda function?
+What are closures?
+What is a decorator?
+How do decorators work internally?
+How do you write a decorator with arguments?
+What is functools.wraps?
+Why should we use functools.wraps in decorators?
+What are iterators?
+What is an iterable?
+Difference between iterator and iterable?
+What is a generator?
+How does yield work?
+Difference between return and yield?
+What is generator expression?
+What are advantages of generators?
+What is lazy evaluation?
+What is itertools used for?
+How do you process a large file efficiently in Python?
+What is object-oriented programming?
+What are class and object?
+What is inheritance?
+What is multiple inheritance?
+What is multilevel inheritance?
+What is method overriding?
+Does Python support method overloading?
+What is polymorphism?
+What is encapsulation?
+What is abstraction?
+What is the difference between class variable and instance variable?
+What is self?
+What is cls?
+Difference between instance method, class method, and static method?
+What is @property?
+What are getter and setter methods?
+What is Method Resolution Order?
+What is C3 linearization?
+What is super()?
+What are magic methods or dunder methods?
+What is __init__?
+What is __new__?
+Difference between __new__ and __init__?
+What is __str__?
+What is __repr__?
+What is __call__?
+What is operator overloading?
+What are abstract base classes?
+What is the abc module?
+What is interface-like behavior in Python?
+What are mixins?
+When should you use mixins?
+What is composition?
+Composition vs inheritance — which is better and when?
+What is dependency injection?
+What is singleton pattern?
+What is factory pattern?
+What is repository pattern?
+What is strategy pattern?
+How do you design reusable Python backend components?
+What is exception handling?
+Difference between syntax error and exception?
+Difference between try, except, else, and finally?
+How do you create custom exceptions?
+Why should we avoid broad except Exception?
+What is exception chaining?
+What is raise from?
+What is context manager?
+What is the with statement?
+How does a context manager work internally?
+What are __enter__ and __exit__?
+How do you create a custom context manager?
+What is contextlib?
+How do you read a large file line by line?
+How do you handle file encoding issues?
+Difference between text mode and binary mode?
+How do you work with JSON files?
+How do you work with CSV files?
+How do you handle corrupted input files?
+How do you implement retry logic for failed file processing?
+What is concurrency?
+What is parallelism?
+Difference between concurrency and parallelism?
+What is multithreading?
+What is multiprocessing?
+When should you use threading?
+When should you use multiprocessing?
+How does GIL affect CPU-bound tasks?
+How does GIL affect I/O-bound tasks?
+What is asyncio?
+What is event loop?
+What is coroutine?
+What are async and await?
+What is asyncio.gather()?
+What is asyncio.create_task()?
+Difference between gather() and create_task()?
+What is blocking I/O?
+How do you avoid blocking calls in async code?
+What are race conditions?
+How do you handle race conditions in Python?
+What is REST API?
+What are HTTP methods?
+Difference between GET, POST, PUT, PATCH, and DELETE?
+What are HTTP status codes?
+Difference between 401 and 403?
+Difference between 400 and 422?
+What is idempotency?
+Which HTTP methods are idempotent?
+What is API versioning?
+What is pagination?
+Offset pagination vs cursor pagination?
+What is request validation?
+What is response serialization?
+What is middleware?
+What is CORS?
+What is rate limiting?
+How do you secure APIs?
+What is JWT authentication?
+What is OAuth2?
+How do you handle API errors consistently?
+What is FastAPI?
+Why is FastAPI faster than Flask in many cases?
+What is ASGI?
+What is WSGI?
+Difference between ASGI and WSGI?
+What is Uvicorn?
+What is Gunicorn?
+How does FastAPI use Pydantic?
+What are FastAPI dependencies?
+How do you implement authentication in FastAPI?
+How do you create background tasks in FastAPI?
+How do you handle file uploads in FastAPI?
+How do you test FastAPI endpoints?
+Flask vs FastAPI — which one would you choose and why?
+Django vs FastAPI — when to use which?
+What is Django ORM?
+What are Django middlewares?
+What are Django signals?
+What is Django migration?
+How do you deploy a Python web API in production?
+How do you connect Python with PostgreSQL?
+What is SQLAlchemy?
+What is ORM?
+ORM vs raw SQL — which is better?
+What is connection pooling?
+What are database transactions?
+What are ACID properties?
+What is isolation level?
+What is database deadlock?
+How do you optimize slow database queries?
+What is indexing?
+When can indexes reduce performance?
+What is N+1 query problem?
+How do you solve N+1 query issue?
+What is Alembic?
+What is database migration?
+What is Redis?
+How do you use Redis for caching?
+What is cache invalidation?
+How do you design a Python backend service with database and cache?
+What is Rust, and why is it used?
+What are the main features of Rust?
+How is Rust different from C++?
+How is Rust different from Python?
+What does “memory safety without garbage collection” mean?
+What is the Rust compiler responsible for?
+What is Cargo in Rust?
+What is rustc?
+What is Cargo.toml?
+What is a crate in Rust?
+What is a module in Rust?
+What is the difference between a binary crate and a library crate?
+What is the main() function in Rust?
+What is the difference between let and let mut?
+Why are variables immutable by default in Rust?
+What is variable shadowing?
+How is shadowing different from mutability?
+What are scalar types in Rust?
+What are compound types in Rust?
+What is type inference in Rust?
+What is ownership in Rust?
+What are the three ownership rules in Rust?
+What happens when ownership is moved?
+What is borrowing in Rust?
+What is a reference in Rust?
+What is the difference between immutable reference and mutable reference?
+Why can Rust allow many immutable references but only one mutable reference?
+What is a dangling reference?
+How does Rust prevent dangling references?
+What is move semantics?
+What is copy semantics?
+What is the Copy trait?
+What is the Clone trait?
+What is the difference between Copy and Clone?
+Why does String move but integer types usually copy?
+What happens when a function takes ownership of a value?
+How can a function borrow a value instead of taking ownership?
+How do you return ownership from a function?
+What is the borrow checker?
+How does the borrow checker help prevent data races?
+What is a lifetime in Rust?
+Why are lifetimes needed?
+What problem do lifetimes solve?
+What is lifetime annotation?
+When do we need explicit lifetime annotations?
+What is lifetime elision?
+What are lifetime elision rules?
+Explain 'static lifetime.
+What is the difference between &'static str and String?
+How do lifetimes work in structs?
+Why do references inside structs usually need lifetime annotations?
+What does this mean: fn longest<'a>(x: &'a str, y: &'a str) -> &'a str?
+Can lifetimes extend the actual lifetime of a value?
+What is a dangling lifetime issue?
+How do lifetimes improve memory safety?
+What is anonymous lifetime '_?
+What is lifetime subtyping?
+What is higher-ranked trait bound?
+What does for<'a> mean in Rust?
+What are common lifetime errors you have faced?
+What is a struct in Rust?
+What are named-field structs?
+What are tuple structs?
+What are unit-like structs?
+How do you implement methods for a struct?
+What is the difference between associated function and method?
+What is Self in Rust?
+What is an enum in Rust?
+How are Rust enums different from enums in other languages?
+What is Option<T>?
+Why does Rust not have null?
+What is Some and None?
+What is Result<T, E>?
+What is pattern matching?
+What is the match expression?
+What is if let?
+What is while let?
+When would you use match instead of if let?
+What is destructuring?
+How do you match nested enums or structs?
+What is a trait in Rust?
+How are traits similar to interfaces?
+How do you implement a trait for a struct?
+What is a default method in a trait?
+What is trait bound?
+What is generic programming?
+Why are generics useful?
+What is monomorphization?
+How does Rust compile generic code?
+What is the difference between impl Trait and generic type parameters?
+What is where clause in Rust?
+What are associated types?
+What is the difference between associated types and generics?
+What is trait object?
+What is dynamic dispatch?
+What is static dispatch?
+What is the difference between Box<dyn Trait> and impl Trait?
+What is object safety?
+What makes a trait object-safe?
+When would you use dynamic dispatch in Rust?
+How does Rust handle errors?
+What is the difference between recoverable and unrecoverable errors?
+What is panic!?
+When should you use panic!?
+What is Result<T, E>?
+What is Option<T>?
+What is the difference between Result and Option?
+What is unwrap()?
+Why should unwrap() be avoided in production code?
+What is expect()?
+What is the ? operator?
+How does the ? operator simplify error handling?
+How do you create custom error types?
+What is the thiserror crate used for?
+What is the anyhow crate used for?
+Difference between thiserror and anyhow?
+How do you propagate errors from a function?
+How do you handle multiple error types?
+How do you convert one error type into another?
+How do you log errors in a Rust backend application?
+What is Vec<T>?
+What is the difference between array and vector?
+What is HashMap<K, V>?
+What is HashSet<T>?
+What is BTreeMap?
+Difference between HashMap and BTreeMap?
+What is String?
+What is &str?
+Difference between String and &str?
+What is string slicing?
+Why can string indexing be tricky in Rust?
+What is UTF-8 handling in Rust strings?
+What is an iterator?
+What is the Iterator trait?
+What is map() in Rust iterators?
+What is filter() in Rust iterators?
+What is collect()?
+What is lazy evaluation in iterators?
+What is IntoIterator?
+Difference between iter(), iter_mut(), and into_iter()?
+How does Rust manage memory?
+Why does Rust not need a garbage collector?
+What is stack memory?
+What is heap memory?
+When is data allocated on heap?
+What is Box<T>?
+When would you use Box<T>?
+What is Rc<T>?
+What is Arc<T>?
+Difference between Rc and Arc?
+What is RefCell<T>?
+What is interior mutability?
+What is Mutex<T>?
+What is RwLock<T>?
+Difference between Mutex and RwLock?
+What is Cow<T>?
+What are smart pointers?
+What is the Deref trait?
+What is the Drop trait?
+How does Rust prevent memory leaks?
+What is concurrency in Rust?
+What is parallelism?
+How does Rust prevent data races?
+What is a thread in Rust?
+How do you create a thread using std::thread?
+What is message passing?
+What are channels in Rust?
+What is shared-state concurrency?
+What is Send trait?
+What is Sync trait?
+Difference between Send and Sync?
+What is async programming in Rust?
+What is a Future?
+What is the difference between blocking and non-blocking code?
+What is async fn?
+What is .await?
+What is Tokio?
+Why is Tokio widely used in Rust backend?
+What is async runtime?
+Difference between Tokio and async-std?
+What are popular Rust backend frameworks?
+What is Actix Web?
+What is Axum?
+What is Rocket?
+Which Rust backend framework have you used or explored?
+How do you create a REST API in Rust?
+How do you handle JSON request and response in Rust?
+What is Serde?
+How does Serde help in API development?
+How do you define request DTOs and response DTOs in Rust?
+How do you manage application state in Axum or Actix?
+How do you handle route parameters?
+How do you handle query parameters?
+How do you handle request validation?
+How do you handle middleware in Rust backend?
+How do you implement authentication in Rust APIs?
+How do you structure a Rust backend project?
+How do you handle configuration and environment variables?
+How do you return proper HTTP status codes?
+How do you handle graceful shutdown in Rust services?

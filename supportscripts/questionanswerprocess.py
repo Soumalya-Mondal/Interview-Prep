@@ -72,7 +72,9 @@ def question_answer_process(database_file_path: str, system_prompt_file_path: st
     import time
     max_retries = 3
     base_delay = 1
-    
+    total_input_tokens_all_answers = 0
+    total_output_tokens_all_answers = 0
+
     for answer_id, question_text, existing_input_tokens, existing_output_tokens in answers_to_process:
         try:
             # Call Azure OpenAI API with retry logic
@@ -95,7 +97,7 @@ def question_answer_process(database_file_path: str, system_prompt_file_path: st
                         time.sleep(wait_time)
                     else:
                         raise retry_error
-            
+
             if response is None:
                 raise Exception("Failed to get response after retries")
 
@@ -120,11 +122,27 @@ def question_answer_process(database_file_path: str, system_prompt_file_path: st
             database_cursor.execute(update_query, (processed_answer_text, cumulative_input_tokens, cumulative_output_tokens, answer_id))
             database_connection.commit()
 
+            # Accumulate tokens for final summary
+            total_input_tokens_all_answers += input_tokens
+            total_output_tokens_all_answers += output_tokens
+
             # Print terminal output for each processed answer
             print(f"SUCCESS - Answer ID: {answer_id}; Input Tokens = {input_tokens}, Output Tokens = {output_tokens}")
         except Exception as error:
             database_connection.close()
             return {'status': 'ERROR', 'step': '6', 'file_name': 'Question-Answer-Process', 'message': f'Answer ID {answer_id}: {str(error)}'}
+
+    # Print Token Summary: S6b
+    try:
+        # Calculate costs (Input: $1.25 per 1M tokens, Output: $10 per 1M tokens)
+        input_cost = (total_input_tokens_all_answers / 1_000_000) * 1.25
+        output_cost = (total_output_tokens_all_answers / 1_000_000) * 10.00
+        
+        print(f"\n--- QUESTION ANSWER SUMMARY ---")
+        print(f"Total Input Tokens = {total_input_tokens_all_answers} [${input_cost:.2f}]")
+        print(f"Total Output Tokens = {total_output_tokens_all_answers} [${output_cost:.2f}]\n")
+    except Exception as error:
+        pass  # Don't fail if summary calculation fails
 
     # Close Database Connection And Return Success: S7
     try:

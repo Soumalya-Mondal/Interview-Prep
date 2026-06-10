@@ -12,7 +12,7 @@ def db_table_create(database_file_path: str) -> dict[str, str]:
         # validate if database directory exists, if not create it
         database_file_path_obj = Path(database_file_path)
         database_directory = database_file_path_obj.parent
-        
+
         if not database_directory.exists():
             database_directory.mkdir(parents = True, exist_ok = True)
     except Exception as error:

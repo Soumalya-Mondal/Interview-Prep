@@ -5,6 +5,7 @@ def credential_check(env_file_path: str) -> dict[str, str]:
         import os
         from dotenv import load_dotenv
         from pathlib import Path
+        from openai import AzureOpenAI
     except Exception as error:
         return {'status': 'ERROR', 'step': '1', 'file_name': 'Credential-Check', 'message': str(error)}
 
@@ -13,7 +14,7 @@ def credential_check(env_file_path: str) -> dict[str, str]:
         # validate if env file exists
         if not Path(env_file_path).exists():
             return {'status': 'ERROR', 'step': '2', 'file_name': 'Credential-Check', 'message': f'".env" File Not Found: {env_file_path}'}
-        
+
         # load environment variables from .env file
         load_dotenv(dotenv_path = env_file_path)
     except Exception as error:
@@ -34,8 +35,34 @@ def credential_check(env_file_path: str) -> dict[str, str]:
         os.environ['API_VERSION'] = os.getenv('API_VERSION')
         os.environ['API_ENDPOINT'] = os.getenv('API_ENDPOINT')
         os.environ['CHAT_MODEL_NAME'] = os.getenv('CHAT_MODEL_NAME')
-
-        # return success status
-        return {'status': 'SUCCESS', 'step': '3', 'file_name': 'Credential-Check', 'message': 'Environment Variables Loaded And Set Successfully'}
     except Exception as error:
         return {'status': 'ERROR', 'step': '3', 'file_name': 'Credential-Check', 'message': str(error)}
+
+    # Validate Azure OpenAI API Connection:S4
+    try:
+        # create Azure OpenAI client
+        client = AzureOpenAI(
+            api_key=os.getenv('API_KEY'),
+            api_version=os.getenv('API_VERSION'),
+            azure_endpoint=os.getenv('API_ENDPOINT')
+        )
+
+        # send test prompt to verify API responds
+        test_response = client.chat.completions.create(
+            model=os.getenv('CHAT_MODEL_NAME'),
+            messages=[
+                {"role": "system", "content": "You are a test assistant. Respond with exactly 'OK' if you receive this message."},
+                {"role": "user", "content": "Respond with OK if working"}
+            ],
+            temperature=0,
+            max_completion_tokens=10
+        )
+
+        # check if response received
+        if not test_response.choices or not test_response.choices[0].message:
+            return {'status': 'ERROR', 'step': '4', 'file_name': 'Credential-Check', 'message': 'Azure OpenAI API did not return a valid response'}
+    except Exception as error:
+        return {'status': 'ERROR', 'step': '4', 'file_name': 'Credential-Check', 'message': f'Azure OpenAI API Validation Failed: {str(error)}'}
+
+    # Return Final Success Status
+    return {'status': 'SUCCESS', 'step': '4', 'file_name': 'Credential-Check', 'message': 'Environment Variables Loaded And Azure OpenAI API Validated Successfully'}

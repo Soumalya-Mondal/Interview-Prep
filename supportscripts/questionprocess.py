@@ -16,16 +16,16 @@ def question_process(database_file_path: str, system_prompt_file_path: str) -> d
         database_file_path_obj = Path(database_file_path)
         if not database_file_path_obj.exists():
             return {'status': 'ERROR', 'step': '2', 'file_name': 'Question-Process', 'message': f'Database File Not Found: {database_file_path}'}
-        
+
         # validate system prompt file path exists
         system_prompt_file_path_obj = Path(system_prompt_file_path)
         if not system_prompt_file_path_obj.exists():
             return {'status': 'ERROR', 'step': '2', 'file_name': 'Question-Process', 'message': f'System Prompt File Not Found: {system_prompt_file_path}'}
-        
+
         # read the system prompt file and load into memory
         with open(str(system_prompt_file_path), 'r', encoding='utf-8') as system_prompt_file:
             system_prompt = system_prompt_file.read().strip()
-        
+
         if not system_prompt:
             return {'status': 'ERROR', 'step': '2', 'file_name': 'Question-Process', 'message': 'System Prompt File Is Empty'}
     except Exception as error:
@@ -43,13 +43,13 @@ def question_process(database_file_path: str, system_prompt_file_path: str) -> d
     try:
         # fetch all questions where row_status = 1 (Data inserted)
         fetch_query = """
-        SELECT id, actual_question_text FROM interview_qa_table 
+        SELECT id, actual_question_text FROM interview_qa_table
         WHERE row_status = 1
         ORDER BY id ASC
         """
         database_cursor.execute(fetch_query)
         questions_to_process = database_cursor.fetchall()
-        
+
         if not questions_to_process:
             database_connection.close()
             return {'status': 'ERROR', 'step': '4', 'file_name': 'Question-Process', 'message': 'No questions found with row_status = 1'}
@@ -68,29 +68,26 @@ def question_process(database_file_path: str, system_prompt_file_path: str) -> d
     except Exception as error:
         database_connection.close()
         return {'status': 'ERROR', 'step': '5', 'file_name': 'Question-Process', 'message': f'Azure OpenAI Client Init Failed: {str(error)}'}
-    
+
     # Process Questions Sequentially: S6
     try:
         import time
         max_retries = 3
         base_delay = 1
-        
+
         processed_questions_dict = {}
-        
+
         for question_id, question_text in questions_to_process:
             try:
                 # Call Azure OpenAI API with retry logic
                 response = None
                 for attempt in range(max_retries):
                     try:
-                        # prepare JSON payload with id and question
-                        json_payload = json.dumps({"id": question_id, "question": question_text})
-                        
                         response = client.chat.completions.create(
                             model=os.getenv('CHAT_MODEL_NAME'),
                             messages=[
                                 {"role": "system", "content": system_prompt},
-                                {"role": "user", "content": json_payload}
+                                {"role": "user", "content": question_text}
                             ],
                             timeout=30.0
                         )
@@ -102,22 +99,17 @@ def question_process(database_file_path: str, system_prompt_file_path: str) -> d
                             time.sleep(wait_time)
                         else:
                             raise retry_error
-                
+
                 if response is None:
                     raise Exception("Failed to get response after retries")
-                
+
                 processed_text = response.choices[0].message.content
                 input_tokens = response.usage.prompt_tokens
                 output_tokens = response.usage.completion_tokens
-                
-                # parse JSON response to extract processed question
-                try:
-                    response_json = json.loads(processed_text)
-                    processed_question_text = response_json.get('question', processed_text)
-                except (json.JSONDecodeError, TypeError):
-                    # if response is not valid JSON, use it as-is
-                    processed_question_text = processed_text
-                
+
+                # use response text directly as corrected question
+                processed_question_text = processed_text.strip()
+
                 processed_questions_dict[question_id] = {
                     'id': question_id,
                     'original_question': question_text,
@@ -127,18 +119,33 @@ def question_process(database_file_path: str, system_prompt_file_path: str) -> d
                     'model_name': os.getenv('CHAT_MODEL_NAME'),
                     'status': 'SUCCESS'
                 }
-                
+
                 # Print success message immediately after processing each question
                 print(f"SUCCESS - Question ID: {question_id}; Input Tokens = {input_tokens}, Output Tokens = {output_tokens}")
-            
+
             except Exception as error:
                 database_connection.close()
                 return {'status': 'ERROR', 'step': '6', 'file_name': 'Question-Process', 'message': f'Error processing Question ID {question_id}: {str(error)}'}
-    
+
     except Exception as error:
         database_connection.close()
         return {'status': 'ERROR', 'step': '6', 'file_name': 'Question-Process', 'message': str(error)}
-    
+
+    # Calculate and Print Token Summary: S6b
+    try:
+        total_input_tokens = sum(result['input_tokens'] for result in processed_questions_dict.values() if result['status'] == 'SUCCESS')
+        total_output_tokens = sum(result['output_tokens'] for result in processed_questions_dict.values() if result['status'] == 'SUCCESS')
+        
+        # Calculate costs (Input: $1.25 per 1M tokens, Output: $10 per 1M tokens)
+        input_cost = (total_input_tokens / 1_000_000) * 1.25
+        output_cost = (total_output_tokens / 1_000_000) * 10.00
+        
+        print(f"\n--- QUESTION CORRECTION SUMMARY ---")
+        print(f"Total Input Tokens = {total_input_tokens} [${input_cost:.2f}]")
+        print(f"Total Output Tokens = {total_output_tokens} [${output_cost:.2f}]\n")
+    except Exception as error:
+        pass  # Don't fail if summary calculation fails
+
     # Update Database With Processed Questions And Cumulative Tokens: S7
     try:
         for q_id, result in processed_questions_dict.items():
@@ -149,17 +156,17 @@ def question_process(database_file_path: str, system_prompt_file_path: str) -> d
                 token_row = database_cursor.fetchone()
                 current_input_tokens = token_row[0] if token_row else 0
                 current_output_tokens = token_row[1] if token_row else 0
-                
+
                 # calculate cumulative tokens (add new tokens to existing)
                 new_input_tokens = current_input_tokens + result['input_tokens']
                 new_output_tokens = current_output_tokens + result['output_tokens']
-                
+
                 # update database with processed question and cumulative tokens
                 update_query = """
-                UPDATE interview_qa_table 
-                SET final_question_text = ?, 
-                    input_token = ?, 
-                    output_token = ?, 
+                UPDATE interview_qa_table
+                SET final_question_text = ?,
+                    input_token = ?,
+                    output_token = ?,
                     model_name = ?,
                     row_status = 2
                 WHERE id = ?
@@ -173,10 +180,10 @@ def question_process(database_file_path: str, system_prompt_file_path: str) -> d
                 ))
             else:
                 pass
-        
+
         database_connection.commit()
         database_connection.close()
-        
+
         return {'status': 'SUCCESS', 'file_name': 'Question-Process', 'message': ''}
     except Exception as error:
         database_connection.close()

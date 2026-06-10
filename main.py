@@ -1,25 +1,9 @@
 # define main function
 if __name__ == "__main__":
-    # Define Constants For API Retry Logic
-    max_retries = 5
-    base_delay = 1
-    backoff_multiplier = 2
-    max_wait = 60
-    attempt = 0
-    response = None
-
     # Import Python Module:S1
     try:
-        import os
         import sys
         from pathlib import Path
-        from dotenv import load_dotenv
-        import sqlite3
-        import time
-        import string
-        import mistune
-        from jinja2 import Environment, FileSystemLoader
-        from openai import AzureOpenAI
     except Exception as error:
         print(f'ERROR - [Main:S1] - {str(error)}')
         exit(1)
@@ -65,12 +49,6 @@ if __name__ == "__main__":
         if credential_result['status'] != 'SUCCESS':
             print(f'ERROR - [Main:S5] - Credential Check Failed: {credential_result["message"]}')
             exit(1)
-        
-        # extract credentials from os.environ
-        api_key = os.getenv('API_KEY')
-        api_version = os.getenv('API_VERSION')
-        api_endpoint = os.getenv('API_ENDPOINT')
-        chat_model_name = os.getenv('CHAT_MODEL_NAME')
         print(f'SUCCESS - {credential_result["message"]}')
     except Exception as error:
         print(f'ERROR - [Main:S5] - {str(error)}')
